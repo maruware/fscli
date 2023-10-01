@@ -64,11 +64,7 @@ func TestQuery(t *testing.T) {
 		{
 			desc: "simple query",
 			input: NewQueryOperation("users", []Filter{
-				&StringFilter{
-					field:    "name",
-					operator: "==",
-					value:    "user1",
-				},
+				NewStringFilter("name", "==", "user1"),
 			}),
 			want: []map[string]any{
 				{

@@ -11,34 +11,53 @@ type Filter interface {
 	Value() any
 }
 
-type IntFilter struct {
+type BaseFilter struct {
 	field    string
 	operator string
-	value    int
 }
 
-func (f *IntFilter) FieldName() string {
+func (f *BaseFilter) FieldName() string {
 	return f.field
 }
-func (f *IntFilter) Operator() string {
+func (f *BaseFilter) Operator() string {
 	return f.operator
 }
+
+type IntFilter struct {
+	BaseFilter
+	value int
+}
+
+func NewIntFilter(field, operator string, value int) *IntFilter {
+	return &IntFilter{BaseFilter{field, operator}, value}
+}
+
 func (f *IntFilter) Value() any {
 	return f.value
 }
 
-type StringFilter struct {
-	field    string
-	operator string
-	value    string
+type FloatFilter struct {
+	BaseFilter
+	value float64
 }
 
-func (f *StringFilter) FieldName() string {
-	return f.field
+func NewFloatFilter(field, operator string, value float64) *FloatFilter {
+	return &FloatFilter{BaseFilter{field, operator}, value}
 }
-func (f *StringFilter) Operator() string {
-	return f.operator
+
+func (f *FloatFilter) Value() any {
+	return f.value
 }
+
+type StringFilter struct {
+	BaseFilter
+	value string
+}
+
+func NewStringFilter(field, operator, value string) *StringFilter {
+	return &StringFilter{BaseFilter{field, operator}, value}
+}
+
 func (f *StringFilter) Value() any {
 	return f.value
 }

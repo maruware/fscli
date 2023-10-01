@@ -14,13 +14,13 @@ func TestLexer(t *testing.T) {
 	}{
 		{
 			desc:  "simple query",
-			input: `QUERY user WHERE name = "John Doe"`,
+			input: `QUERY user WHERE name == "John Doe"`,
 			want: []Token{
 				{Type: QUERY, Literal: "QUERY"},
 				{Type: IDENT, Literal: "user"},
 				{Type: WHERE, Literal: "WHERE"},
 				{Type: IDENT, Literal: "name"},
-				{Type: EQ, Literal: "="},
+				{Type: EQ, Literal: "=="},
 				{Type: STRING, Literal: "John Doe"},
 			},
 		},

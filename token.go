@@ -6,7 +6,7 @@ const (
 
 	QUERY  = "QUERY"
 	WHERE  = "WHERE"
-	EQ     = "="
+	EQ     = "=="
 	NOT_EQ = "!="
 
 	IDENT  = "IDENT"
@@ -30,7 +30,7 @@ var keywards = map[string]TokenType{
 }
 
 var operators = map[string]TokenType{
-	"=":  EQ,
+	"==": EQ,
 	"!=": NOT_EQ,
 }
 

@@ -38,7 +38,14 @@ func (l *Lexer) NextToken() Token {
 
 	switch l.ch {
 	case '=':
-		tok = newToken(EQ, l.ch)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = Token{Type: EQ, Literal: literal}
+		} else {
+			// invalid currently
+		}
 	case '"':
 		tok.Type = STRING
 		tok.Literal = l.readString('"')

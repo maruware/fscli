@@ -77,10 +77,17 @@ func (p *Parser) parseFilter() (Filter, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid int value: %s", p.curToken.Literal)
 		}
-		return &IntFilter{field: field, operator: operator, value: n}, nil
+		return NewIntFilter(field, operator, n), nil
+	}
+	if p.curTokenIs(FLOAT) {
+		n, err := strconv.ParseFloat(p.curToken.Literal, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid float value: %s", p.curToken.Literal)
+		}
+		return NewFloatFilter(field, operator, n), nil
 	}
 	if p.curTokenIs(STRING) {
-		return &StringFilter{field: field, operator: operator, value: p.curToken.Literal}, nil
+		return NewStringFilter(field, operator, p.curToken.Literal), nil
 	}
 	return nil, fmt.Errorf("invalid filter value: %s", p.curToken.Literal)
 }

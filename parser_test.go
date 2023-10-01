@@ -14,14 +14,14 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			desc:  "simple query",
-			input: `QUERY user WHERE name = "John Doe"`,
+			input: `QUERY user WHERE name == "John Doe"`,
 			want: &QueryOperation{
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
 					&StringFilter{
 						field:    "name",
-						operator: "=",
+						operator: "==",
 						value:    "John Doe",
 					},
 				},

@@ -1,7 +1,6 @@
 package fscli
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,27 +8,46 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
+	"github.com/mattn/go-colorable"
+
+	"github.com/fatih/color"
+	"github.com/nyaosorg/go-readline-ny"
+	"github.com/nyaosorg/go-readline-ny/coloring"
+	"github.com/nyaosorg/go-readline-ny/simplehistory"
 )
 
-const PROMPT = ">> "
-
 func ReplStart(ctx context.Context, fs *firestore.Client, in io.Reader, out io.Writer) {
-	scanner := bufio.NewScanner(in)
+	history := simplehistory.New()
+
+	editor := &readline.Editor{
+		PromptWriter: func(w io.Writer) (int, error) {
+			green := color.New(color.FgGreen)
+			return green.Fprintf(w, "> ")
+		},
+		Writer:         colorable.NewColorableStdout(),
+		History:        history,
+		Coloring:       &coloring.VimBatch{},
+		HistoryCycling: true,
+	}
+
 	executor := NewExecutor(ctx, fs)
 
 	for {
-		fmt.Printf(PROMPT)
-		scanned := scanner.Scan()
-		if !scanned {
+		line, err := editor.ReadLine(ctx)
+		if err != nil {
+			if err == io.EOF {
+				return
+			}
+			fmt.Printf("error: %s\n", err)
 			return
 		}
-
-		line := scanner.Text()
 
 		if strings.TrimSpace(line) == "\\d" {
 			listUpCollections(ctx, fs, out)
 			continue
 		}
+
+		history.Add(line)
 
 		lexer := NewLexer(line)
 		parser := NewParser(lexer)

@@ -19,11 +19,29 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					&StringFilter{
-						field:    "name",
-						operator: "==",
-						value:    "John Doe",
-					},
+					NewStringFilter("name", "==", "John Doe"),
+				},
+			},
+		},
+		{
+			desc:  "query with int",
+			input: `QUERY user WHERE age == 20`,
+			want: &QueryOperation{
+				opType:     QUERY,
+				collection: "user",
+				filters: []Filter{
+					NewIntFilter("age", "==", 20),
+				},
+			},
+		},
+		{
+			desc:  "query with float",
+			input: `QUERY user WHERE age == 20.5`,
+			want: &QueryOperation{
+				opType:     QUERY,
+				collection: "user",
+				filters: []Filter{
+					NewFloatFilter("age", "==", 20.5),
 				},
 			},
 		},

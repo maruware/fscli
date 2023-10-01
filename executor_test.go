@@ -38,7 +38,11 @@ func seed(c *firestore.Client) error {
 func TestQuery(t *testing.T) {
 	os.Setenv("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080")
 	ctx := context.Background()
-	exe, err := NewExecutor(ctx, "test-project")
+	fs, err := firestore.NewClient(ctx, "test-project")
+	if err != nil {
+		t.Fatal(err)
+	}
+	exe := NewExecutor(ctx, fs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +51,7 @@ func TestQuery(t *testing.T) {
 		t.Fatal("executor is nil")
 	}
 
-	err = seed(exe.c)
+	err = seed(fs)
 	if err != nil {
 		t.Fatal(err)
 	}

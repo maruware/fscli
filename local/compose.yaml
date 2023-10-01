@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  firestore:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    ports:
+      - 8080:8080
+    command: gcloud emulators firestore start --host-port=0.0.0.0:8080
+    healthcheck:
+      test: "curl -f http://localhost:8080 || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 10

@@ -8,21 +8,15 @@ import (
 )
 
 type Executor struct {
-	c *firestore.Client
+	fs *firestore.Client
 }
 
-func NewExecutor(ctx context.Context, projectID string) (*Executor, error) {
-	client, err := firestore.NewClient(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	e := &Executor{client}
-	return e, nil
+func NewExecutor(ctx context.Context, fs *firestore.Client) *Executor {
+	return &Executor{fs}
 }
 
 func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]map[string]any, error) {
-	collection := exe.c.Collection(op.Collection())
+	collection := exe.fs.Collection(op.Collection())
 	q := collection.Query
 	for _, filter := range op.filters {
 		q = q.Where(filter.FieldName(), filter.Operator(), filter.Value())

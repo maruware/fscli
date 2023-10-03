@@ -72,6 +72,18 @@ func TestLexer(t *testing.T) {
 				{Type: STRING, Literal: "Hello World"},
 			},
 		},
+		{
+			desc:  "query with not equal",
+			input: `QUERY user WHERE name != "John Doe"`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "name"},
+				{Type: NOT_EQ, Literal: "!="},
+				{Type: STRING, Literal: "John Doe"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

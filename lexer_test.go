@@ -60,6 +60,18 @@ func TestLexer(t *testing.T) {
 				{Type: FLOAT, Literal: "20.5"},
 			},
 		},
+		{
+			desc:  "query subcollection",
+			input: `QUERY users/abc/posts WHERE title == "Hello World"`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "users/abc/posts"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "title"},
+				{Type: EQ, Literal: "=="},
+				{Type: STRING, Literal: "Hello World"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

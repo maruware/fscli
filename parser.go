@@ -27,25 +27,25 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) Parse() Operation {
+func (p *Parser) Parse() (Operation, error) {
 
 	if p.curTokenIs(QUERY) {
 		return p.parseQueryOperation()
 	}
-	return nil
+	return nil, fmt.Errorf("invalid")
 }
 
-func (p *Parser) parseQueryOperation() *QueryOperation {
+func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 	op := &QueryOperation{opType: QUERY}
 
 	if !p.expectPeek(IDENT) {
-		return nil
+		return nil, fmt.Errorf("invalid")
 	}
 
 	op.collection = p.curToken.Literal
 
 	if !p.expectPeek(WHERE) {
-		return nil
+		return nil, fmt.Errorf("invalid")
 	}
 
 	p.nextToken()
@@ -53,7 +53,7 @@ func (p *Parser) parseQueryOperation() *QueryOperation {
 		filter, err := p.parseFilter()
 		if err != nil {
 			p.errors = append(p.errors, err.Error())
-			return nil
+			return nil, err
 		}
 		if filter != nil {
 			op.filters = append(op.filters, filter)
@@ -61,7 +61,7 @@ func (p *Parser) parseQueryOperation() *QueryOperation {
 		p.nextToken()
 	}
 
-	return op
+	return op, nil
 }
 
 func (p *Parser) parseFilter() (Filter, error) {

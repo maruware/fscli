@@ -51,7 +51,14 @@ func ReplStart(ctx context.Context, fs *firestore.Client, in io.Reader, out io.W
 
 		lexer := NewLexer(line)
 		parser := NewParser(lexer)
-		op := parser.Parse()
+		op, err := parser.Parse()
+		if err != nil {
+			fmt.Printf("error: %s\n", err)
+			continue
+		}
+		if op == nil {
+			continue
+		}
 		if op, ok := op.(*QueryOperation); ok {
 			results, err := executor.ExecuteQuery(ctx, op)
 			if err != nil {

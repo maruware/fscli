@@ -51,7 +51,10 @@ func TestParse(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			l := NewLexer(tt.input)
 			p := NewParser(l)
-			got := p.Parse()
+			got, err := p.Parse()
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			assert.Equal(t, tt.want, got)
 		})

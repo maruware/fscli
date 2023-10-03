@@ -127,6 +127,18 @@ func TestQuery(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "query with not equal",
+			input: NewQueryOperation(usersCollection, []Filter{
+				NewStringFilter("name", "!=", "user-1"),
+			}),
+			want: []map[string]any{
+				{"name": "user-0", "age": int64(20)},
+				{"name": "user-2", "age": int64(20)},
+				{"name": "user-3", "age": int64(20)},
+				{"name": "user-4", "age": int64(20)},
+			},
+		},
 	}
 
 	for _, tt := range tests {

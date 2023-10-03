@@ -44,7 +44,24 @@ func (l *Lexer) NextToken() Token {
 			literal := string(ch) + string(l.ch)
 			tok = Token{Type: EQ, Literal: literal}
 		} else {
-			// invalid currently
+			// illegal
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = Token{Type: ILLEGAL, Literal: literal}
+		}
+	case '!':
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = Token{Type: NOT_EQ, Literal: literal}
+		} else {
+			// illegal
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = Token{Type: ILLEGAL, Literal: literal}
 		}
 	case '"':
 		tok.Type = STRING

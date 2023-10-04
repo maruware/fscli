@@ -84,6 +84,30 @@ func TestLexer(t *testing.T) {
 				{Type: STRING, Literal: "John Doe"},
 			},
 		},
+		{
+			desc:  "query with lower case",
+			input: `query user where name == 'John Doe'`,
+			want: []Token{
+				{Type: QUERY, Literal: "query"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "where"},
+				{Type: IDENT, Literal: "name"},
+				{Type: EQ, Literal: "=="},
+				{Type: STRING, Literal: "John Doe"},
+			},
+		},
+		{
+			desc:  "query with lower and upper case",
+			input: `QuEry user WhERE name == 'John Doe'`,
+			want: []Token{
+				{Type: QUERY, Literal: "QuEry"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WhERE"},
+				{Type: IDENT, Literal: "name"},
+				{Type: EQ, Literal: "=="},
+				{Type: STRING, Literal: "John Doe"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

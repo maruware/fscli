@@ -58,6 +58,10 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 		if filter != nil {
 			op.filters = append(op.filters, filter)
 		}
+
+		if !p.expectPeek(AND) {
+			break
+		}
 		p.nextToken()
 	}
 

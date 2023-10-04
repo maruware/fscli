@@ -139,6 +139,16 @@ func TestQuery(t *testing.T) {
 				{"name": "user-4", "age": int64(20)},
 			},
 		},
+		{
+			desc: "query with and",
+			input: NewQueryOperation(usersCollection, []Filter{
+				NewStringFilter("name", "==", "user-1"),
+				NewIntFilter("age", "==", 20),
+			}),
+			want: []map[string]any{
+				{"name": "user-1", "age": int64(20)},
+			},
+		},
 	}
 
 	for _, tt := range tests {

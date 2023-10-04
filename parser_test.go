@@ -30,7 +30,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewIntFilter("age", OP_EQ, 20),
+					NewIntFilter("age", OPERATOR_EQ, 20),
 				},
 			},
 		},
@@ -41,7 +41,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewFloatFilter("age", OP_EQ, 20.5),
+					NewFloatFilter("age", OPERATOR_EQ, 20.5),
 				},
 			},
 		},
@@ -52,7 +52,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewArrayFilter("age", OP_IN, []any{20, 21, 22}),
+					NewArrayFilter("age", OPERATOR_IN, []any{20, 21, 22}),
 				},
 			},
 		},
@@ -63,7 +63,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewArrayFilter("age", OP_IN, []any{20, 21.5, "22"}),
+					NewArrayFilter("age", OPERATOR_IN, []any{20, 21.5, "22"}),
 				},
 			},
 		},
@@ -74,7 +74,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewStringFilter("nicknames", OP_ARRAY_CONTAINS, "Doe"),
+					NewStringFilter("nicknames", OPERATOR_ARRAY_CONTAINS, "Doe"),
 				},
 			},
 		},
@@ -85,7 +85,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewArrayFilter("nicknames", OP_ARRAY_CONTAINS_ANY, []any{"Doe", "John"}),
+					NewArrayFilter("nicknames", OPERATOR_ARRAY_CONTAINS_ANY, []any{"Doe", "John"}),
 				},
 			},
 		},

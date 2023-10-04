@@ -8,11 +8,11 @@ type Operation interface {
 type Operator string
 
 const (
-	OP_EQ                 Operator = "=="
-	OP_NOT_EQ             Operator = "!="
-	OP_IN                 Operator = "in"
-	OP_ARRAY_CONTAINS     Operator = "array-contains"
-	OP_ARRAY_CONTAINS_ANY Operator = "array-contains-any"
+	OPERATOR_EQ                 Operator = "=="
+	OPERATOR_NOT_EQ             Operator = "!="
+	OPERATOR_IN                 Operator = "in"
+	OPERATOR_ARRAY_CONTAINS     Operator = "array-contains"
+	OPERATOR_ARRAY_CONTAINS_ANY Operator = "array-contains-any"
 )
 
 type Filter interface {

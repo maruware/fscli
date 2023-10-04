@@ -140,6 +140,34 @@ func TestLexer(t *testing.T) {
 				{Type: RBRACKET, Literal: "]"},
 			},
 		},
+		{
+			desc:  "query with array-contains",
+			input: `QUERY user WHERE nicknames ARRAY_CONTAINS "Doe"`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "nicknames"},
+				{Type: ARRAY_CONTAINS, Literal: "ARRAY_CONTAINS"},
+				{Type: STRING, Literal: "Doe"},
+			},
+		},
+		{
+			desc:  "query with array-contains-any",
+			input: `QUERY user WHERE nicknames ARRAY_CONTAINS_ANY ["Doe", "John"]`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "nicknames"},
+				{Type: ARRAY_CONTAINS_ANY, Literal: "ARRAY_CONTAINS_ANY"},
+				{Type: LBRACKET, Literal: "["},
+				{Type: STRING, Literal: "Doe"},
+				{Type: COMMA, Literal: ","},
+				{Type: STRING, Literal: "John"},
+				{Type: RBRACKET, Literal: "]"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

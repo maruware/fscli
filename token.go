@@ -1,5 +1,7 @@
 package fscli
 
+import "strings"
+
 const (
 	EOF     = "EOF"
 	ILLEGAL = "ILLEGAL"
@@ -24,9 +26,7 @@ type Token struct {
 
 var keywards = map[string]TokenType{
 	"QUERY": QUERY,
-	"query": QUERY,
 	"WHERE": WHERE,
-	"where": WHERE,
 }
 
 var operators = map[string]TokenType{
@@ -35,7 +35,8 @@ var operators = map[string]TokenType{
 }
 
 func LookupIdent(ident string) TokenType {
-	if tok, ok := keywards[ident]; ok {
+	u := strings.ToUpper(ident)
+	if tok, ok := keywards[u]; ok {
 		return tok
 	}
 	if tok, ok := operators[ident]; ok {

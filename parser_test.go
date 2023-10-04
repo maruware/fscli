@@ -30,7 +30,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewIntFilter("age", "==", 20),
+					NewIntFilter("age", OP_EQ, 20),
 				},
 			},
 		},
@@ -41,7 +41,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewFloatFilter("age", "==", 20.5),
+					NewFloatFilter("age", OP_EQ, 20.5),
 				},
 			},
 		},
@@ -52,7 +52,7 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewArrayFilter("age", "in", []any{20, 21, 22}),
+					NewArrayFilter("age", OP_IN, []any{20, 21, 22}),
 				},
 			},
 		},
@@ -63,7 +63,29 @@ func TestParse(t *testing.T) {
 				opType:     QUERY,
 				collection: "user",
 				filters: []Filter{
-					NewArrayFilter("age", "in", []any{20, 21.5, "22"}),
+					NewArrayFilter("age", OP_IN, []any{20, 21.5, "22"}),
+				},
+			},
+		},
+		{
+			desc:  "query with array-contains",
+			input: `QUERY user WHERE nicknames ARRAY_CONTAINS "Doe"`,
+			want: &QueryOperation{
+				opType:     QUERY,
+				collection: "user",
+				filters: []Filter{
+					NewStringFilter("nicknames", OP_ARRAY_CONTAINS, "Doe"),
+				},
+			},
+		},
+		{
+			desc:  "query with array-contains-any",
+			input: `QUERY user WHERE nicknames ARRAY_CONTAINS_ANY ["Doe", "John"]`,
+			want: &QueryOperation{
+				opType:     QUERY,
+				collection: "user",
+				filters: []Filter{
+					NewArrayFilter("nicknames", OP_ARRAY_CONTAINS_ANY, []any{"Doe", "John"}),
 				},
 			},
 		},

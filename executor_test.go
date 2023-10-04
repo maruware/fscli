@@ -26,6 +26,10 @@ func seed(c *firestore.Client) error {
 			_, err := c.Collection(usersCollection).Doc(userId).Set(ctx, map[string]interface{}{
 				"name": fmt.Sprintf("user-%d", i),
 				"age":  20 + i,
+				"nicknames": []string{
+					fmt.Sprintf("u-%d-1", i),
+					fmt.Sprintf("u-%d-2", i),
+				},
 			})
 			if err != nil {
 				return err
@@ -111,8 +115,9 @@ func TestQuery(t *testing.T) {
 			}),
 			want: []map[string]any{
 				{
-					"name": "user-1",
-					"age":  int64(21),
+					"name":      "user-1",
+					"age":       int64(21),
+					"nicknames": []any{"u-1-1", "u-1-2"},
 				},
 			},
 		},
@@ -133,10 +138,10 @@ func TestQuery(t *testing.T) {
 				NewStringFilter("name", "!=", "user-1"),
 			}),
 			want: []map[string]any{
-				{"name": "user-0", "age": int64(20)},
-				{"name": "user-2", "age": int64(22)},
-				{"name": "user-3", "age": int64(23)},
-				{"name": "user-4", "age": int64(24)},
+				{"name": "user-0", "age": int64(20), "nicknames": []any{"u-0-1", "u-0-2"}},
+				{"name": "user-2", "age": int64(22), "nicknames": []any{"u-2-1", "u-2-2"}},
+				{"name": "user-3", "age": int64(23), "nicknames": []any{"u-3-1", "u-3-2"}},
+				{"name": "user-4", "age": int64(24), "nicknames": []any{"u-4-1", "u-4-2"}},
 			},
 		},
 		{
@@ -146,7 +151,7 @@ func TestQuery(t *testing.T) {
 				NewIntFilter("age", "==", 21),
 			}),
 			want: []map[string]any{
-				{"name": "user-1", "age": int64(21)},
+				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
 			},
 		},
 		{
@@ -155,9 +160,28 @@ func TestQuery(t *testing.T) {
 				NewArrayFilter("age", "in", []any{20, 21, 22}),
 			}),
 			want: []map[string]any{
-				{"name": "user-0", "age": int64(20)},
-				{"name": "user-1", "age": int64(21)},
-				{"name": "user-2", "age": int64(22)},
+				{"name": "user-0", "age": int64(20), "nicknames": []any{"u-0-1", "u-0-2"}},
+				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
+				{"name": "user-2", "age": int64(22), "nicknames": []any{"u-2-1", "u-2-2"}},
+			},
+		},
+		{
+			desc: "query with array-contains",
+			input: NewQueryOperation(usersCollection, []Filter{
+				NewStringFilter("nicknames", "array-contains", "u-1-1"),
+			}),
+			want: []map[string]any{
+				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
+			},
+		},
+		{
+			desc: "query with array-contains-any",
+			input: NewQueryOperation(usersCollection, []Filter{
+				NewArrayFilter("nicknames", "array-contains-any", []any{"u-1-1", "u-2-1"}),
+			}),
+			want: []map[string]any{
+				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
+				{"name": "user-2", "age": int64(22), "nicknames": []any{"u-2-1", "u-2-2"}},
 			},
 		},
 	}

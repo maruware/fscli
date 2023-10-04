@@ -80,6 +80,10 @@ func (p *Parser) parseFilter() (Filter, error) {
 		operator = OP_NOT_EQ
 	} else if p.curTokenIs(IN) {
 		operator = OP_IN
+	} else if p.curTokenIs(ARRAY_CONTAINS) {
+		operator = OP_ARRAY_CONTAINS
+	} else if p.curTokenIs(ARRAY_CONTAINS_ANY) {
+		operator = OP_ARRAY_CONTAINS_ANY
 	} else {
 		return nil, fmt.Errorf("invalid filter operator: %s", p.curToken.Literal)
 	}

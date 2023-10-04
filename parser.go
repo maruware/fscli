@@ -72,9 +72,23 @@ func (p *Parser) parseFilter() (Filter, error) {
 	field := p.curToken.Literal
 
 	p.nextToken()
-	operator := p.curToken.Literal
+
+	var operator Operator
+	if p.curTokenIs(EQ) {
+		operator = OP_EQ
+	} else if p.curTokenIs(NOT_EQ) {
+		operator = OP_NOT_EQ
+	} else if p.curTokenIs(IN) {
+		operator = OP_IN
+	} else {
+		return nil, fmt.Errorf("invalid filter operator: %s", p.curToken.Literal)
+	}
 
 	p.nextToken()
+
+	if p.curTokenIs(LBRACKET) {
+		return p.parseArrayFilter(field, operator)
+	}
 
 	if p.curTokenIs(INT) {
 		n, err := strconv.Atoi(p.curToken.Literal)
@@ -94,6 +108,36 @@ func (p *Parser) parseFilter() (Filter, error) {
 		return NewStringFilter(field, operator, p.curToken.Literal), nil
 	}
 	return nil, fmt.Errorf("invalid filter value: %s", p.curToken.Literal)
+}
+
+func (p *Parser) parseArrayFilter(field string, operator Operator) (Filter, error) {
+	var values []any
+	p.nextToken()
+	for !p.curTokenIs(RBRACKET) {
+		if p.curTokenIs(STRING) {
+			values = append(values, p.curToken.Literal)
+		} else if p.curTokenIs(INT) {
+			n, err := strconv.Atoi(p.curToken.Literal)
+			if err != nil {
+				return nil, fmt.Errorf("invalid int value: %s", p.curToken.Literal)
+			}
+			values = append(values, n)
+		} else if p.curTokenIs(FLOAT) {
+			n, err := strconv.ParseFloat(p.curToken.Literal, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid float value: %s", p.curToken.Literal)
+			}
+			values = append(values, n)
+		} else {
+			return nil, fmt.Errorf("invalid array filter value: %s", p.curToken.Literal)
+		}
+
+		if !p.expectPeek(COMMA) {
+			break
+		}
+		p.nextToken()
+	}
+	return NewArrayFilter(field, operator, values), nil
 }
 
 func (p *Parser) Errors() []string {

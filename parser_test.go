@@ -45,6 +45,28 @@ func TestParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc:  "query with IN",
+			input: `QUERY user WHERE age IN [20, 21, 22]`,
+			want: &QueryOperation{
+				opType:     QUERY,
+				collection: "user",
+				filters: []Filter{
+					NewArrayFilter("age", "in", []any{20, 21, 22}),
+				},
+			},
+		},
+		{
+			desc:  "query with IN by mutiple types",
+			input: `QUERY user WHERE age IN [20, 21.5, "22"]`,
+			want: &QueryOperation{
+				opType:     QUERY,
+				collection: "user",
+				filters: []Filter{
+					NewArrayFilter("age", "in", []any{20, 21.5, "22"}),
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {

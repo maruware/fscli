@@ -10,6 +10,7 @@ const (
 	WHERE  = "WHERE"
 	EQ     = "=="
 	NOT_EQ = "!="
+	IN     = "IN"
 
 	IDENT  = "IDENT"
 	STRING = "STRING"
@@ -17,6 +18,10 @@ const (
 	FLOAT  = "FLOAT"
 
 	AND = "AND"
+
+	LBRACKET = "["
+	RBRACKET = "]"
+	COMMA    = ","
 )
 
 type TokenType = string
@@ -35,6 +40,7 @@ var keywards = map[string]TokenType{
 var operators = map[string]TokenType{
 	"==": EQ,
 	"!=": NOT_EQ,
+	"IN": IN,
 }
 
 func LookupIdent(ident string) TokenType {
@@ -42,7 +48,7 @@ func LookupIdent(ident string) TokenType {
 	if tok, ok := keywards[u]; ok {
 		return tok
 	}
-	if tok, ok := operators[ident]; ok {
+	if tok, ok := operators[u]; ok {
 		return tok
 	}
 	return IDENT

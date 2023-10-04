@@ -124,6 +124,22 @@ func TestLexer(t *testing.T) {
 				{Type: INT, Literal: "20"},
 			},
 		},
+		{
+			desc:  "query with in",
+			input: `QUERY user WHERE name IN ["John Doe", "Jane Doe"]`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "name"},
+				{Type: IN, Literal: "IN"},
+				{Type: LBRACKET, Literal: "["},
+				{Type: STRING, Literal: "John Doe"},
+				{Type: COMMA, Literal: ","},
+				{Type: STRING, Literal: "Jane Doe"},
+				{Type: RBRACKET, Literal: "]"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

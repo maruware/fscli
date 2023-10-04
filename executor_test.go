@@ -25,7 +25,7 @@ func seed(c *firestore.Client) error {
 			userId := strconv.Itoa(i)
 			_, err := c.Collection(usersCollection).Doc(userId).Set(ctx, map[string]interface{}{
 				"name": fmt.Sprintf("user-%d", i),
-				"age":  20,
+				"age":  20 + i,
 			})
 			if err != nil {
 				return err
@@ -112,7 +112,7 @@ func TestQuery(t *testing.T) {
 			want: []map[string]any{
 				{
 					"name": "user-1",
-					"age":  int64(20),
+					"age":  int64(21),
 				},
 			},
 		},
@@ -134,19 +134,30 @@ func TestQuery(t *testing.T) {
 			}),
 			want: []map[string]any{
 				{"name": "user-0", "age": int64(20)},
-				{"name": "user-2", "age": int64(20)},
-				{"name": "user-3", "age": int64(20)},
-				{"name": "user-4", "age": int64(20)},
+				{"name": "user-2", "age": int64(22)},
+				{"name": "user-3", "age": int64(23)},
+				{"name": "user-4", "age": int64(24)},
 			},
 		},
 		{
 			desc: "query with and",
 			input: NewQueryOperation(usersCollection, []Filter{
 				NewStringFilter("name", "==", "user-1"),
-				NewIntFilter("age", "==", 20),
+				NewIntFilter("age", "==", 21),
 			}),
 			want: []map[string]any{
-				{"name": "user-1", "age": int64(20)},
+				{"name": "user-1", "age": int64(21)},
+			},
+		},
+		{
+			desc: "query with IN",
+			input: NewQueryOperation(usersCollection, []Filter{
+				NewArrayFilter("age", "in", []any{20, 21, 22}),
+			}),
+			want: []map[string]any{
+				{"name": "user-0", "age": int64(20)},
+				{"name": "user-1", "age": int64(21)},
+				{"name": "user-2", "age": int64(22)},
 			},
 		},
 	}

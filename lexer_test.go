@@ -108,6 +108,22 @@ func TestLexer(t *testing.T) {
 				{Type: STRING, Literal: "John Doe"},
 			},
 		},
+		{
+			desc:  "query with and",
+			input: `QUERY user WHERE name == "John Doe" AND age == 20`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "name"},
+				{Type: EQ, Literal: "=="},
+				{Type: STRING, Literal: "John Doe"},
+				{Type: AND, Literal: "AND"},
+				{Type: IDENT, Literal: "age"},
+				{Type: EQ, Literal: "=="},
+				{Type: INT, Literal: "20"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

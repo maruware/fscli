@@ -15,6 +15,8 @@ const (
 	STRING = "STRING"
 	INT    = "INT"
 	FLOAT  = "FLOAT"
+
+	AND = "AND"
 )
 
 type TokenType = string
@@ -27,6 +29,7 @@ type Token struct {
 var keywards = map[string]TokenType{
 	"QUERY": QUERY,
 	"WHERE": WHERE,
+	"AND":   AND,
 }
 
 var operators = map[string]TokenType{

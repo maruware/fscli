@@ -69,6 +69,12 @@ func (l *Lexer) NextToken() Token {
 	case '\'':
 		tok.Type = STRING
 		tok.Literal = l.readString('\'')
+	case '[':
+		tok = newToken(LBRACKET, l.ch)
+	case ']':
+		tok = newToken(RBRACKET, l.ch)
+	case ',':
+		tok = newToken(COMMA, l.ch)
 	case 0:
 		tok.Literal = ""
 		tok.Type = EOF
@@ -109,9 +115,6 @@ func (l *Lexer) readString(quote byte) string {
 	}
 
 	r := l.input[position:l.position]
-	if l.ch == quote {
-		l.readChar()
-	}
 	return r
 }
 

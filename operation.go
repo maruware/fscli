@@ -5,21 +5,29 @@ type Operation interface {
 	Collection() string
 }
 
+type Operator string
+
+const (
+	OP_EQ     Operator = "=="
+	OP_NOT_EQ Operator = "!="
+	OP_IN     Operator = "in"
+)
+
 type Filter interface {
 	FieldName() string
-	Operator() string
+	Operator() Operator
 	Value() any
 }
 
 type BaseFilter struct {
 	field    string
-	operator string
+	operator Operator
 }
 
 func (f *BaseFilter) FieldName() string {
 	return f.field
 }
-func (f *BaseFilter) Operator() string {
+func (f *BaseFilter) Operator() Operator {
 	return f.operator
 }
 
@@ -28,7 +36,7 @@ type IntFilter struct {
 	value int
 }
 
-func NewIntFilter(field, operator string, value int) *IntFilter {
+func NewIntFilter(field string, operator Operator, value int) *IntFilter {
 	return &IntFilter{BaseFilter{field, operator}, value}
 }
 
@@ -41,7 +49,7 @@ type FloatFilter struct {
 	value float64
 }
 
-func NewFloatFilter(field, operator string, value float64) *FloatFilter {
+func NewFloatFilter(field string, operator Operator, value float64) *FloatFilter {
 	return &FloatFilter{BaseFilter{field, operator}, value}
 }
 
@@ -54,11 +62,24 @@ type StringFilter struct {
 	value string
 }
 
-func NewStringFilter(field, operator, value string) *StringFilter {
+func NewStringFilter(field string, operator Operator, value string) *StringFilter {
 	return &StringFilter{BaseFilter{field, operator}, value}
 }
 
 func (f *StringFilter) Value() any {
+	return f.value
+}
+
+type ArrayFilter struct {
+	BaseFilter
+	value []any
+}
+
+func NewArrayFilter(field string, operator Operator, value []any) *ArrayFilter {
+	return &ArrayFilter{BaseFilter{field, operator}, value}
+}
+
+func (f *ArrayFilter) Value() any {
 	return f.value
 }
 

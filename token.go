@@ -6,11 +6,13 @@ const (
 	EOF     = "EOF"
 	ILLEGAL = "ILLEGAL"
 
-	QUERY  = "QUERY"
-	WHERE  = "WHERE"
-	EQ     = "=="
-	NOT_EQ = "!="
-	IN     = "IN"
+	QUERY              = "QUERY"
+	WHERE              = "WHERE"
+	EQ                 = "=="
+	NOT_EQ             = "!="
+	IN                 = "IN"
+	ARRAY_CONTAINS     = "ARRAY_CONTAINS"
+	ARRAY_CONTAINS_ANY = "ARRAY_CONTAINS_ANY"
 
 	IDENT  = "IDENT"
 	STRING = "STRING"
@@ -38,9 +40,11 @@ var keywards = map[string]TokenType{
 }
 
 var operators = map[string]TokenType{
-	"==": EQ,
-	"!=": NOT_EQ,
-	"IN": IN,
+	"==":                 EQ,
+	"!=":                 NOT_EQ,
+	"IN":                 IN,
+	"ARRAY_CONTAINS":     ARRAY_CONTAINS,
+	"ARRAY_CONTAINS_ANY": ARRAY_CONTAINS_ANY,
 }
 
 func LookupIdent(ident string) TokenType {

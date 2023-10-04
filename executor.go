@@ -19,7 +19,7 @@ func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]ma
 	collection := exe.fs.Collection(op.Collection())
 	q := collection.Query
 	for _, filter := range op.filters {
-		q = q.Where(filter.FieldName(), filter.Operator(), filter.Value())
+		q = q.Where(filter.FieldName(), string(filter.Operator()), filter.Value())
 	}
 
 	itr := q.Documents(ctx)

@@ -168,6 +168,14 @@ func TestLexer(t *testing.T) {
 				{Type: RBRACKET, Literal: "]"},
 			},
 		},
+		{
+			desc:  "get",
+			input: `GET users/abc`,
+			want: []Token{
+				{Type: GET, Literal: "GET"},
+				{Type: IDENT, Literal: "users/abc"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

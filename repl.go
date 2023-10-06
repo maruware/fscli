@@ -75,6 +75,19 @@ func ReplStart(ctx context.Context, fs *firestore.Client, in io.Reader, out io.W
 				out.Write([]byte(fmt.Sprintf("%s\n", j)))
 			}
 		}
+		if op, ok := op.(*GetOperation); ok {
+			result, err := executor.ExecuteGet(ctx, op)
+			if err != nil {
+				fmt.Printf("error: %s\n", err)
+				continue
+			}
+			j, err := json.Marshal(result)
+			if err != nil {
+				fmt.Printf("error: %s\n", err)
+				continue
+			}
+			out.Write([]byte(fmt.Sprintf("%s\n", j)))
+		}
 	}
 }
 

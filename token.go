@@ -6,7 +6,9 @@ const (
 	EOF     = "EOF"
 	ILLEGAL = "ILLEGAL"
 
-	QUERY              = "QUERY"
+	GET   = "GET"
+	QUERY = "QUERY"
+
 	WHERE              = "WHERE"
 	EQ                 = "=="
 	NOT_EQ             = "!="
@@ -34,6 +36,7 @@ type Token struct {
 }
 
 var keywards = map[string]TokenType{
+	"GET":   GET,
 	"QUERY": QUERY,
 	"WHERE": WHERE,
 	"AND":   AND,

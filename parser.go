@@ -3,6 +3,7 @@ package fscli
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type Parser struct {
@@ -32,11 +33,14 @@ func (p *Parser) Parse() (Operation, error) {
 	if p.curTokenIs(QUERY) {
 		return p.parseQueryOperation()
 	}
+	if p.curTokenIs(GET) {
+		return p.parseGetOperation()
+	}
 	return nil, fmt.Errorf("invalid")
 }
 
 func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
-	op := &QueryOperation{opType: QUERY}
+	op := &QueryOperation{}
 
 	if !p.expectPeek(IDENT) {
 		return nil, fmt.Errorf("invalid")
@@ -65,6 +69,23 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 		p.nextToken()
 	}
 
+	return op, nil
+}
+
+func (p *Parser) parseGetOperation() (*GetOperation, error) {
+	op := &GetOperation{}
+
+	if !p.expectPeek(IDENT) {
+		return nil, fmt.Errorf("invalid")
+	}
+
+	path := p.curToken.Literal
+	lastSlash := strings.LastIndex(path, "/")
+	if lastSlash == -1 {
+		return nil, fmt.Errorf("invalid")
+	}
+	op.collection = path[:lastSlash]
+	op.docId = path[lastSlash+1:]
 	return op, nil
 }
 

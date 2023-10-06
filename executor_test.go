@@ -12,10 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const prefix = "fscli-executor-test"
-const usersCollection = prefix + "-users"
-
-func seed(c *firestore.Client) error {
+func seed(c *firestore.Client, usersCollection string) error {
 	ctx := context.Background()
 
 	g := errgroup.Group{}
@@ -51,7 +48,7 @@ func seed(c *firestore.Client) error {
 	return err
 }
 
-func cleanSeed(c *firestore.Client) error {
+func cleanSeed(c *firestore.Client, usersCollection string) error {
 	ctx := context.Background()
 
 	usersItr := c.Collection(usersCollection).Query.Documents(ctx)
@@ -97,11 +94,14 @@ func TestQuery(t *testing.T) {
 		t.Fatal("executor is nil")
 	}
 
-	err = seed(fs)
+	prefix := "fscli-executor-test-query"
+	usersCollection := prefix + "-users"
+
+	err = seed(fs, usersCollection)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanSeed(fs)
+	defer cleanSeed(fs, usersCollection)
 
 	tests := []struct {
 		desc  string
@@ -193,6 +193,56 @@ func TestQuery(t *testing.T) {
 				t.Fatal(err)
 			}
 			assert.Equal(t, tt.want, results)
+		})
+	}
+}
+
+func TestGet(t *testing.T) {
+	os.Setenv("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080")
+	ctx := context.Background()
+	fs, err := firestore.NewClient(ctx, "test-project")
+	if err != nil {
+		t.Fatal(err)
+	}
+	exe := NewExecutor(ctx, fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if exe == nil {
+		t.Fatal("executor is nil")
+	}
+
+	prefix := "fscli-executor-test-get"
+	usersCollection := prefix + "-users"
+
+	err = seed(fs, usersCollection)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanSeed(fs, usersCollection)
+
+	tests := []struct {
+		desc  string
+		input *GetOperation
+		want  map[string]any
+	}{
+		{
+			desc:  "get",
+			input: NewGetOperation(usersCollection, "1"),
+			want: map[string]any{
+				"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			result, err := exe.ExecuteGet(ctx, tt.input)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, tt.want, result)
 		})
 	}
 }

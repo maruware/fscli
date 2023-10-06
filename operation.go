@@ -1,7 +1,14 @@
 package fscli
 
+type OperationType string
+
+const (
+	OPERATION_TYPE_QUERY OperationType = "QUERY"
+	OPERATION_TYPE_GET   OperationType = "GET"
+)
+
 type Operation interface {
-	OperationType() string
+	OperationType() OperationType
 	Collection() string
 }
 
@@ -86,19 +93,39 @@ func (f *ArrayFilter) Value() any {
 }
 
 type QueryOperation struct {
-	opType     string
 	collection string
 	filters    []Filter
 }
 
 func NewQueryOperation(collection string, filters []Filter) *QueryOperation {
-	return &QueryOperation{QUERY, collection, filters}
+	return &QueryOperation{collection, filters}
 }
 
-func (op *QueryOperation) OperationType() string {
-	return op.opType
+func (op *QueryOperation) OperationType() OperationType {
+	return OPERATION_TYPE_QUERY
 }
 
 func (op *QueryOperation) Collection() string {
 	return op.collection
+}
+
+type GetOperation struct {
+	collection string
+	docId      string
+}
+
+func NewGetOperation(collection string, docId string) *GetOperation {
+	return &GetOperation{collection, docId}
+}
+
+func (op *GetOperation) OperationType() OperationType {
+	return OPERATION_TYPE_GET
+}
+
+func (op *GetOperation) Collection() string {
+	return op.collection
+}
+
+func (op *GetOperation) DocId() string {
+	return op.docId
 }

@@ -176,6 +176,14 @@ func TestLexer(t *testing.T) {
 				{Type: IDENT, Literal: "users/abc"},
 			},
 		},
+		{
+			desc:  "get with letter and digit",
+			input: `GET users/abc123`,
+			want: []Token{
+				{Type: GET, Literal: "GET"},
+				{Type: IDENT, Literal: "users/abc123"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -39,3 +39,11 @@ func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]ma
 	}
 	return results, nil
 }
+
+func (exe *Executor) ExecuteGet(ctx context.Context, op *GetOperation) (map[string]any, error) {
+	doc, err := exe.fs.Collection(op.Collection()).Doc(op.DocId()).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return doc.Data(), nil
+}

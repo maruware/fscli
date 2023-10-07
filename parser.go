@@ -48,7 +48,13 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 
 	op.collection = p.curToken.Literal
 
-	if !p.expectPeek(WHERE) {
+	p.nextToken()
+
+	if p.curTokenIs(EOF) {
+		return op, nil
+	}
+
+	if !p.curTokenIs(WHERE) {
 		return nil, fmt.Errorf("invalid")
 	}
 

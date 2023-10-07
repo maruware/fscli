@@ -141,6 +141,7 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 	}
 
 	table := tablewriter.NewWriter(r.out)
+	table.SetAutoFormatHeaders(false)
 	table.SetHeader(keys)
 
 	for _, doc := range docs {
@@ -169,6 +170,7 @@ func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
 	}
 
 	table := tablewriter.NewWriter(r.out)
+	table.SetAutoFormatHeaders(false)
 	table.SetHeader(keys)
 
 	row := []string{}

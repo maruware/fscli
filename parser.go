@@ -46,7 +46,7 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 		return nil, fmt.Errorf("invalid")
 	}
 
-	op.collection = p.curToken.Literal
+	op.collection = p.trimHeadSlash(p.curToken.Literal)
 
 	p.nextToken()
 
@@ -195,4 +195,11 @@ func (p *Parser) expectPeek(t TokenType) bool {
 func (p *Parser) peekError(t TokenType) {
 	msg := fmt.Sprintf("expected next token tobe %s, got %s instead", t, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) trimHeadSlash(s string) string {
+	if strings.HasPrefix(s, "/") {
+		return s[1:]
+	}
+	return s
 }

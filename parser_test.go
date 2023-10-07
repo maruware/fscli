@@ -66,6 +66,11 @@ func TestParse(t *testing.T) {
 				NewArrayFilter("nicknames", OPERATOR_ARRAY_CONTAINS_ANY, []any{"Doe", "John"}),
 			}),
 		},
+		{
+			desc:  "query with trim head slash",
+			input: `QUERY /user`,
+			want:  NewQueryOperation("user", nil),
+		},
 	}
 
 	for _, tt := range tests {

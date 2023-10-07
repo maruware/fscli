@@ -15,7 +15,7 @@ func NewExecutor(ctx context.Context, fs *firestore.Client) *Executor {
 	return &Executor{fs}
 }
 
-func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]map[string]any, error) {
+func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]*firestore.DocumentSnapshot, error) {
 	collection := exe.fs.Collection(op.Collection())
 	q := collection.Query
 	for _, filter := range op.filters {
@@ -25,7 +25,7 @@ func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]ma
 	itr := q.Documents(ctx)
 	defer itr.Stop()
 
-	results := []map[string]any{}
+	docs := make([]*firestore.DocumentSnapshot, 0)
 	for {
 		doc, err := itr.Next()
 		if err == iterator.Done {
@@ -35,15 +35,15 @@ func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]ma
 			return nil, err
 		}
 
-		results = append(results, doc.Data())
+		docs = append(docs, doc)
 	}
-	return results, nil
+	return docs, nil
 }
 
-func (exe *Executor) ExecuteGet(ctx context.Context, op *GetOperation) (map[string]any, error) {
+func (exe *Executor) ExecuteGet(ctx context.Context, op *GetOperation) (*firestore.DocumentSnapshot, error) {
 	doc, err := exe.fs.Collection(op.Collection()).Doc(op.DocId()).Get(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return doc.Data(), nil
+	return doc, nil
 }

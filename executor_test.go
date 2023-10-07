@@ -199,9 +199,14 @@ func TestQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			results, err := exe.ExecuteQuery(ctx, tt.input)
+			docs, err := exe.ExecuteQuery(ctx, tt.input)
 			if err != nil {
 				t.Fatal(err)
+			}
+
+			results := make([]map[string]any, 0)
+			for _, doc := range docs {
+				results = append(results, doc.Data())
 			}
 			assert.Equal(t, tt.want, results)
 		})
@@ -249,11 +254,11 @@ func TestGet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			result, err := exe.ExecuteGet(ctx, tt.input)
+			doc, err := exe.ExecuteGet(ctx, tt.input)
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.Equal(t, tt.want, result)
+			assert.Equal(t, tt.want, doc.Data())
 		})
 	}
 }

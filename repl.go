@@ -16,6 +16,8 @@ import (
 	"github.com/nyaosorg/go-readline-ny/simplehistory"
 )
 
+const LongLine = "--------------------------------------------------------------------------"
+
 func ReplStart(ctx context.Context, fs *firestore.Client, in io.Reader, out io.Writer) {
 	history := simplehistory.New()
 
@@ -60,33 +62,37 @@ func ReplStart(ctx context.Context, fs *firestore.Client, in io.Reader, out io.W
 			continue
 		}
 		if op, ok := op.(*QueryOperation); ok {
-			results, err := executor.ExecuteQuery(ctx, op)
+			docs, err := executor.ExecuteQuery(ctx, op)
 			if err != nil {
-				fmt.Printf("error: %s\n", err)
+				fmt.Fprintf(out, "error: %s\n", err)
 				continue
 			}
 
-			for _, result := range results {
-				j, err := json.Marshal(result)
+			for _, doc := range docs {
+				fmt.Fprintf(out, "ID: %s\n", doc.Ref.ID)
+
+				j, err := json.Marshal(doc.Data())
 				if err != nil {
-					fmt.Printf("error: %s\n", err)
+					fmt.Printf("invalid data: %s\n", err)
+					fmt.Fprintln(out, LongLine)
 					continue
 				}
-				out.Write([]byte(fmt.Sprintf("%s\n", j)))
+				fmt.Fprintf(out, "Data: %s\n", j)
+				fmt.Fprintln(out, LongLine)
 			}
 		}
 		if op, ok := op.(*GetOperation); ok {
 			result, err := executor.ExecuteGet(ctx, op)
 			if err != nil {
-				fmt.Printf("error: %s\n", err)
+				fmt.Fprintf(out, "error: %s\n", err)
 				continue
 			}
 			j, err := json.Marshal(result)
 			if err != nil {
-				fmt.Printf("error: %s\n", err)
+				fmt.Fprintf(out, "error: %s\n", err)
 				continue
 			}
-			out.Write([]byte(fmt.Sprintf("%s\n", j)))
+			fmt.Fprintf(out, "%s\n", j)
 		}
 	}
 }

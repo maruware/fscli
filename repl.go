@@ -66,7 +66,7 @@ func (r *Repl) Start() {
 			if err == io.EOF {
 				return
 			}
-			fmt.Printf("error: %s\n", err)
+			fmt.Fprintf(r.out, "error: %s\n", err)
 			return
 		}
 
@@ -81,7 +81,7 @@ func (r *Repl) Start() {
 		parser := NewParser(lexer)
 		op, err := parser.Parse()
 		if err != nil {
-			fmt.Printf("error: %s\n", err)
+			fmt.Fprintf(r.out, "error: %s\n", err)
 			continue
 		}
 		if op == nil {
@@ -123,7 +123,7 @@ func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
 	fmt.Fprintf(r.out, "ID: %s\n", doc.Ref.ID)
 	j, err := json.Marshal(doc.Data())
 	if err != nil {
-		fmt.Printf("invalid data: %s\n", err)
+		fmt.Fprintf(r.out, "invalid data: %s\n", err)
 		return
 	}
 	fmt.Fprintf(r.out, "Data: %s\n", j)
@@ -195,6 +195,6 @@ func listUpCollections(ctx context.Context, fs *firestore.Client, out io.Writer)
 		if err != nil {
 			break
 		}
-		out.Write([]byte(fmt.Sprintf("%s\n", col.ID)))
+		fmt.Fprintf(out, "Collection: %s\n", col.ID)
 	}
 }

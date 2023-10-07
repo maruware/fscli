@@ -18,6 +18,11 @@ func main() {
 				Usage:    "firebase project id",
 				Required: true,
 			},
+			&cli.StringFlag{
+				Name:  "out-mode",
+				Usage: "output mode (table or json)",
+				Value: "table",
+			},
 		},
 		Action: func(cCtx *cli.Context) error {
 			projectId := cCtx.String("project-id")
@@ -29,7 +34,11 @@ func main() {
 			}
 			defer fs.Close()
 
-			fscli.ReplStart(cCtx.Context, fs, os.Stdin, os.Stdout)
+			outModeFlag := cCtx.String("out-mode")
+
+			repl := fscli.NewRepl(cCtx.Context, fs, os.Stdin, os.Stdout, fscli.OutputMode(outModeFlag))
+
+			repl.Start()
 			return nil
 		},
 	}

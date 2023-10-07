@@ -109,7 +109,18 @@ func TestQuery(t *testing.T) {
 		want  []map[string]any
 	}{
 		{
-			desc: "simple query",
+			desc:  "simple query",
+			input: NewQueryOperation(usersCollection, nil),
+			want: []map[string]any{
+				{"name": "user-0", "age": int64(20), "nicknames": []any{"u-0-1", "u-0-2"}},
+				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
+				{"name": "user-2", "age": int64(22), "nicknames": []any{"u-2-1", "u-2-2"}},
+				{"name": "user-3", "age": int64(23), "nicknames": []any{"u-3-1", "u-3-2"}},
+				{"name": "user-4", "age": int64(24), "nicknames": []any{"u-4-1", "u-4-2"}},
+			},
+		},
+		{
+			desc: "query with where",
 			input: NewQueryOperation(usersCollection, []Filter{
 				NewStringFilter("name", "==", "user-1"),
 			}),
@@ -122,7 +133,7 @@ func TestQuery(t *testing.T) {
 			},
 		},
 		{
-			desc: "simple query with subcollection",
+			desc: "query with subcollection",
 			input: NewQueryOperation(fmt.Sprintf("%s/1/posts", usersCollection), []Filter{
 				NewStringFilter("title", "==", "post-1"),
 			}),

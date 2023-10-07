@@ -14,6 +14,11 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			desc:  "simple query",
+			input: `QUERY user`,
+			want:  NewQueryOperation("user", nil),
+		},
+		{
+			desc:  "query with where",
 			input: `QUERY user WHERE name == "John Doe"`,
 			want: NewQueryOperation("user", []Filter{
 				NewStringFilter("name", "==", "John Doe"),

@@ -49,7 +49,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.15.0
 	github.com/mattn/go-colorable v0.1.13
-	github.com/nyaosorg/go-readline-ny v0.15.2
+	github.com/nyaosorg/go-readline-ny v1.0.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/urfave/cli/v2 v2.25.7

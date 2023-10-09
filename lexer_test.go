@@ -184,6 +184,18 @@ func TestLexer(t *testing.T) {
 				{Type: IDENT, Literal: "users/abc123"},
 			},
 		},
+		{
+			desc:  "query with emoji",
+			input: `QUERY users WHERE name == "👍"`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "users"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "name"},
+				{Type: EQ, Literal: "=="},
+				{Type: STRING, Literal: "👍"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

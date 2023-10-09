@@ -1,14 +1,14 @@
 package fscli
 
 type Lexer struct {
-	input        string
+	input        []rune
 	position     int
 	readPosition int
-	ch           byte
+	ch           rune
 }
 
 func NewLexer(input string) *Lexer {
-	l := &Lexer{input: input}
+	l := &Lexer{input: []rune(input)}
 	l.readChar()
 	return l
 }
@@ -23,7 +23,7 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
-func (l *Lexer) peekChar() byte {
+func (l *Lexer) peekChar() rune {
 	if l.readPosition >= len(l.input) {
 		return 0
 	} else {
@@ -95,7 +95,7 @@ func (l *Lexer) NextToken() Token {
 	return tok
 }
 
-func newToken(tokenType TokenType, ch byte) Token {
+func newToken(tokenType TokenType, ch rune) Token {
 	return Token{Type: tokenType, Literal: string(ch)}
 }
 
@@ -104,21 +104,21 @@ func (l *Lexer) readIdentifier() string {
 	for isLetter(l.ch) || isDigit(l.ch) {
 		l.readChar()
 	}
-	return l.input[position:l.position]
+	return string(l.input[position:l.position])
 }
 
-func (l *Lexer) readString(quote byte) string {
+func (l *Lexer) readString(quote rune) string {
 	l.readChar()
 	position := l.position
 	for l.ch != quote && l.ch != 0 {
 		l.readChar()
 	}
 
-	r := l.input[position:l.position]
+	r := string(l.input[position:l.position])
 	return r
 }
 
-func isLetter(ch byte) bool {
+func isLetter(ch rune) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '/'
 }
 
@@ -135,7 +135,7 @@ func (l *Lexer) readNumber() (TokenType, string) {
 	}
 
 	if l.ch != '.' {
-		return INT, l.input[position:l.position]
+		return INT, string(l.input[position:l.position])
 	}
 
 	// float
@@ -146,9 +146,9 @@ func (l *Lexer) readNumber() (TokenType, string) {
 		l.readChar()
 	}
 
-	return FLOAT, l.input[position:l.position]
+	return FLOAT, string(l.input[position:l.position])
 }
 
-func isDigit(ch byte) bool {
+func isDigit(ch rune) bool {
 	return '0' <= ch && ch <= '9'
 }

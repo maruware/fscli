@@ -94,11 +94,12 @@ func (f *ArrayFilter) Value() any {
 
 type QueryOperation struct {
 	collection string
+	selects    []string
 	filters    []Filter
 }
 
-func NewQueryOperation(collection string, filters []Filter) *QueryOperation {
-	return &QueryOperation{collection, filters}
+func NewQueryOperation(collection string, selects []string, filters []Filter) *QueryOperation {
+	return &QueryOperation{collection, selects, filters}
 }
 
 func (op *QueryOperation) OperationType() OperationType {

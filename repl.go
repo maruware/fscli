@@ -42,13 +42,30 @@ func NewRepl(ctx context.Context, fs *firestore.Client, in io.Reader, out io.Wri
 	}
 }
 
+var rootSuggestions = []prompt.Suggest{
+	{Text: "GET", Description: "GET [docPath]"},
+	{Text: "QUERY", Description: "QUERY [collection]"},
+}
+
+var querySuggestions = []prompt.Suggest{
+	{Text: "SELECT", Description: "SELECT [field...]"},
+	{Text: "WHERE", Description: "WHERE [field] [operator] [value]"},
+}
+
 func completer(d prompt.Document) []prompt.Suggest {
-	s := []prompt.Suggest{
-		{Text: "GET", Description: "GET [docPath]"},
-		{Text: "QUERY", Description: "QUERY [collection]"},
-		{Text: "WHERE", Description: "WHERE [field] [operator] [value]"},
+	w := d.GetWordBeforeCursor()
+	if w == "" {
+		return []prompt.Suggest{}
 	}
-	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+	if strings.HasPrefix(strings.ToUpper(d.CurrentLine()), "GET") {
+		return []prompt.Suggest{}
+	}
+	// TODO: strict parse
+	if strings.HasPrefix(strings.ToUpper(d.CurrentLine()), "QUERY") {
+		return prompt.FilterHasPrefix(querySuggestions, d.GetWordBeforeCursor(), true)
+	}
+
+	return prompt.FilterHasPrefix(rootSuggestions, d.GetWordBeforeCursor(), true)
 }
 
 func (r *Repl) Start() {

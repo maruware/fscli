@@ -8,10 +8,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
-	"github.com/fatih/color"
-	"github.com/mattn/go-colorable"
-	"github.com/nyaosorg/go-readline-ny"
-	"github.com/nyaosorg/go-readline-ny/simplehistory"
+	"github.com/c-bata/go-prompt"
 	"github.com/olekukonko/tablewriter"
 	"golang.org/x/exp/slices"
 )
@@ -31,6 +28,7 @@ type Repl struct {
 	in         io.Reader
 	out        io.Writer
 	outputMode OutputMode
+	exe        *Executor
 }
 
 func NewRepl(ctx context.Context, fs *firestore.Client, in io.Reader, out io.Writer, outputMode OutputMode) *Repl {
@@ -40,81 +38,26 @@ func NewRepl(ctx context.Context, fs *firestore.Client, in io.Reader, out io.Wri
 		in:         in,
 		out:        out,
 		outputMode: outputMode,
+		exe:        NewExecutor(ctx, fs),
 	}
 }
 
+func completer(d prompt.Document) []prompt.Suggest {
+	s := []prompt.Suggest{
+		{Text: "GET", Description: "GET [docPath]"},
+		{Text: "QUERY", Description: "QUERY [collection]"},
+		{Text: "WHERE", Description: "WHERE [field] [operator] [value]"},
+	}
+	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+}
+
 func (r *Repl) Start() {
-	history := simplehistory.New()
-
-	editor := &readline.Editor{
-		PromptWriter: func(w io.Writer) (int, error) {
-			green := color.New(color.FgGreen)
-			return green.Fprintf(w, "> ")
-		},
-		Writer:         colorable.NewColorableStdout(),
-		History:        history,
-		HistoryCycling: true,
-	}
-
-	executor := NewExecutor(r.ctx, r.fs)
-
-	for {
-		line, err := editor.ReadLine(r.ctx)
-		if err != nil {
-			if err == io.EOF {
-				return
-			}
-			fmt.Fprintf(r.out, "error: %s\n", err)
-			return
-		}
-
-		if strings.TrimSpace(line) == "\\d" {
-			listUpCollections(r.ctx, r.fs, r.out)
-			continue
-		}
-
-		history.Add(line)
-
-		lexer := NewLexer(line)
-		parser := NewParser(lexer)
-		op, err := parser.Parse()
-		if err != nil {
-			fmt.Fprintf(r.out, "error: %s\n", err)
-			continue
-		}
-		if op == nil {
-			continue
-		}
-		if op, ok := op.(*QueryOperation); ok {
-			docs, err := executor.ExecuteQuery(r.ctx, op)
-			if err != nil {
-				fmt.Fprintf(r.out, "error: %s\n", err)
-				continue
-			}
-
-			if r.outputMode == OutputModeJSON {
-				for _, doc := range docs {
-					r.outputDocJSON(doc)
-					fmt.Fprintln(r.out, LongLine)
-				}
-			} else if r.outputMode == OutputModeTable {
-				r.outputDocsTable(docs)
-			}
-		}
-		if op, ok := op.(*GetOperation); ok {
-			doc, err := executor.ExecuteGet(r.ctx, op)
-			if err != nil {
-				fmt.Fprintf(r.out, "error: %s\n", err)
-				continue
-			}
-
-			if r.outputMode == OutputModeJSON {
-				r.outputDocJSON(doc)
-			} else if r.outputMode == OutputModeTable {
-				r.outputDocTable(doc)
-			}
-		}
-	}
+	p := prompt.New(
+		r.processLine,
+		completer,
+		prompt.OptionPrefix("> "),
+	)
+	p.Run()
 }
 
 func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
@@ -159,6 +102,56 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 		table.Append(row)
 	}
 	table.Render()
+}
+
+func (r *Repl) processLine(line string) {
+	if strings.TrimSpace(line) == "" {
+		return
+	}
+	if strings.TrimSpace(line) == "\\d" {
+		listUpCollections(r.ctx, r.fs, r.out)
+		return
+	}
+
+	lexer := NewLexer(line)
+	parser := NewParser(lexer)
+	op, err := parser.Parse()
+	if err != nil {
+		fmt.Fprintf(r.out, "error: %s\n", err)
+		return
+	}
+	if op == nil {
+		return
+	}
+	if op, ok := op.(*QueryOperation); ok {
+		docs, err := r.exe.ExecuteQuery(r.ctx, op)
+		if err != nil {
+			fmt.Fprintf(r.out, "error: %s\n", err)
+			return
+		}
+
+		if r.outputMode == OutputModeJSON {
+			for _, doc := range docs {
+				r.outputDocJSON(doc)
+				fmt.Fprintln(r.out, LongLine)
+			}
+		} else if r.outputMode == OutputModeTable {
+			r.outputDocsTable(docs)
+		}
+	}
+	if op, ok := op.(*GetOperation); ok {
+		doc, err := r.exe.ExecuteGet(r.ctx, op)
+		if err != nil {
+			fmt.Fprintf(r.out, "error: %s\n", err)
+			return
+		}
+
+		if r.outputMode == OutputModeJSON {
+			r.outputDocJSON(doc)
+		} else if r.outputMode == OutputModeTable {
+			r.outputDocTable(doc)
+		}
+	}
 }
 
 func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {

@@ -110,7 +110,7 @@ func TestQuery(t *testing.T) {
 	}{
 		{
 			desc:  "simple query",
-			input: NewQueryOperation(usersCollection, nil),
+			input: NewQueryOperation(usersCollection, nil, nil),
 			want: []map[string]any{
 				{"name": "user-0", "age": int64(20), "nicknames": []any{"u-0-1", "u-0-2"}},
 				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
@@ -121,7 +121,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with where",
-			input: NewQueryOperation(usersCollection, []Filter{
+			input: NewQueryOperation(usersCollection, nil, []Filter{
 				NewStringFilter("name", "==", "user-1"),
 			}),
 			want: []map[string]any{
@@ -134,7 +134,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with subcollection",
-			input: NewQueryOperation(fmt.Sprintf("%s/1/posts", usersCollection), []Filter{
+			input: NewQueryOperation(fmt.Sprintf("%s/1/posts", usersCollection), nil, []Filter{
 				NewStringFilter("title", "==", "post-1"),
 			}),
 			want: []map[string]any{
@@ -145,7 +145,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with not equal",
-			input: NewQueryOperation(usersCollection, []Filter{
+			input: NewQueryOperation(usersCollection, nil, []Filter{
 				NewStringFilter("name", "!=", "user-1"),
 			}),
 			want: []map[string]any{
@@ -157,7 +157,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with and",
-			input: NewQueryOperation(usersCollection, []Filter{
+			input: NewQueryOperation(usersCollection, nil, []Filter{
 				NewStringFilter("name", "==", "user-1"),
 				NewIntFilter("age", "==", 21),
 			}),
@@ -167,7 +167,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with IN",
-			input: NewQueryOperation(usersCollection, []Filter{
+			input: NewQueryOperation(usersCollection, nil, []Filter{
 				NewArrayFilter("age", "in", []any{20, 21, 22}),
 			}),
 			want: []map[string]any{
@@ -178,7 +178,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with array-contains",
-			input: NewQueryOperation(usersCollection, []Filter{
+			input: NewQueryOperation(usersCollection, nil, []Filter{
 				NewStringFilter("nicknames", "array-contains", "u-1-1"),
 			}),
 			want: []map[string]any{
@@ -187,12 +187,30 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with array-contains-any",
-			input: NewQueryOperation(usersCollection, []Filter{
+			input: NewQueryOperation(usersCollection, nil, []Filter{
 				NewArrayFilter("nicknames", "array-contains-any", []any{"u-1-1", "u-2-1"}),
 			}),
 			want: []map[string]any{
 				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
 				{"name": "user-2", "age": int64(22), "nicknames": []any{"u-2-1", "u-2-2"}},
+			},
+		},
+		{
+			desc:  "query with select",
+			input: NewQueryOperation(usersCollection, []string{"name", "age"}, nil),
+			want: []map[string]any{
+				{"name": "user-0", "age": int64(20)},
+				{"name": "user-1", "age": int64(21)},
+				{"name": "user-2", "age": int64(22)},
+				{"name": "user-3", "age": int64(23)},
+				{"name": "user-4", "age": int64(24)},
+			},
+		},
+		{
+			desc:  "query with select and where",
+			input: NewQueryOperation(usersCollection, []string{"name", "age"}, []Filter{NewStringFilter("name", "==", "user-1")}),
+			want: []map[string]any{
+				{"name": "user-1", "age": int64(21)},
 			},
 		},
 	}

@@ -6,8 +6,9 @@ const (
 	EOF     = "EOF"
 	ILLEGAL = "ILLEGAL"
 
-	GET   = "GET"
-	QUERY = "QUERY"
+	GET    = "GET"
+	QUERY  = "QUERY"
+	SELECT = "SELECT"
 
 	WHERE              = "WHERE"
 	EQ                 = "=="
@@ -36,10 +37,11 @@ type Token struct {
 }
 
 var keywards = map[string]TokenType{
-	"GET":   GET,
-	"QUERY": QUERY,
-	"WHERE": WHERE,
-	"AND":   AND,
+	"GET":    GET,
+	"QUERY":  QUERY,
+	"SELECT": SELECT,
+	"WHERE":  WHERE,
+	"AND":    AND,
 }
 
 var operators = map[string]TokenType{

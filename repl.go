@@ -11,7 +11,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
 	"github.com/nyaosorg/go-readline-ny"
-	"github.com/nyaosorg/go-readline-ny/coloring"
 	"github.com/nyaosorg/go-readline-ny/simplehistory"
 	"github.com/olekukonko/tablewriter"
 	"golang.org/x/exp/slices"
@@ -54,7 +53,6 @@ func (r *Repl) Start() {
 		},
 		Writer:         colorable.NewColorableStdout(),
 		History:        history,
-		Coloring:       &coloring.VimBatch{},
 		HistoryCycling: true,
 	}
 

@@ -36,14 +36,14 @@ func (p *Parser) Parse() (Operation, error) {
 	if p.curTokenIs(GET) {
 		return p.parseGetOperation()
 	}
-	return nil, fmt.Errorf("invalid")
+	return nil, fmt.Errorf("invalid operation: %s", p.curToken.Literal)
 }
 
 func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 	op := &QueryOperation{}
 
 	if !p.expectPeek(IDENT) {
-		return nil, fmt.Errorf("invalid")
+		return nil, fmt.Errorf("invalid: expected collection but got %s", p.curToken.Literal)
 	}
 
 	op.collection = p.trimHeadSlash(p.curToken.Literal)
@@ -54,8 +54,23 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 		return op, nil
 	}
 
+	if p.curTokenIs(SELECT) {
+		p.nextToken()
+		selects, err := p.parseSelects()
+		if err != nil {
+			return nil, err
+		}
+		op.selects = selects
+
+		p.nextToken()
+	}
+
+	if p.curTokenIs(EOF) {
+		return op, nil
+	}
+
 	if !p.curTokenIs(WHERE) {
-		return nil, fmt.Errorf("invalid")
+		return nil, fmt.Errorf("invalid: expected where but got %s", p.curToken.Literal)
 	}
 
 	p.nextToken()
@@ -82,7 +97,7 @@ func (p *Parser) parseGetOperation() (*GetOperation, error) {
 	op := &GetOperation{}
 
 	if !p.expectPeek(IDENT) {
-		return nil, fmt.Errorf("invalid")
+		return nil, fmt.Errorf("invalid: expected path but got %s", p.curToken.Literal)
 	}
 
 	path := p.curToken.Literal
@@ -93,6 +108,23 @@ func (p *Parser) parseGetOperation() (*GetOperation, error) {
 	op.collection = path[:lastSlash]
 	op.docId = path[lastSlash+1:]
 	return op, nil
+}
+
+func (p *Parser) parseSelects() ([]string, error) {
+	var selects []string
+	for {
+		if !p.curTokenIs(IDENT) {
+			return nil, fmt.Errorf("invalid: expected field but got %s", p.curToken.Literal)
+		}
+		selects = append(selects, p.curToken.Literal)
+
+		if !p.expectPeek(COMMA) {
+			break
+		}
+		p.nextToken()
+	}
+
+	return selects, nil
 }
 
 func (p *Parser) parseFilter() (Filter, error) {

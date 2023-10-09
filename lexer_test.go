@@ -196,6 +196,18 @@ func TestLexer(t *testing.T) {
 				{Type: STRING, Literal: "👍"},
 			},
 		},
+		{
+			desc:  "query with select",
+			input: `QUERY users SELECT name, age`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "users"},
+				{Type: SELECT, Literal: "SELECT"},
+				{Type: IDENT, Literal: "name"},
+				{Type: COMMA, Literal: ","},
+				{Type: IDENT, Literal: "age"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

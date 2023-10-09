@@ -22,6 +22,10 @@ func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]*f
 		q = q.Where(filter.FieldName(), string(filter.Operator()), filter.Value())
 	}
 
+	if len(op.selects) > 0 {
+		q = q.Select(op.selects...)
+	}
+
 	itr := q.Documents(ctx)
 	defer itr.Stop()
 

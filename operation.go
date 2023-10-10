@@ -104,10 +104,11 @@ type QueryOperation struct {
 	selects    []string
 	filters    []Filter
 	orderBys   []OrderBy
+	limit      int
 }
 
-func NewQueryOperation(collection string, selects []string, filters []Filter, orderBys []OrderBy) *QueryOperation {
-	return &QueryOperation{collection, selects, filters, orderBys}
+func NewQueryOperation(collection string, selects []string, filters []Filter, orderBys []OrderBy, limit int) *QueryOperation {
+	return &QueryOperation{collection, selects, filters, orderBys, limit}
 }
 
 func (op *QueryOperation) OperationType() OperationType {

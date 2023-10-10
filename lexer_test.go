@@ -259,6 +259,41 @@ func TestLexer(t *testing.T) {
 				{Type: DESC, Literal: "DESC"},
 			},
 		},
+		{
+			desc:  "query with limit",
+			input: `QUERY users LIMIT 10`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "users"},
+				{Type: LIMIT, Literal: "LIMIT"},
+				{Type: INT, Literal: "10"},
+			},
+		},
+		{
+			desc:  "query with limit and order by and select and where",
+			input: `QUERY users SELECT name, age WHERE name == "John Doe" ORDER BY name ASC, age DESC LIMIT 10`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "users"},
+				{Type: SELECT, Literal: "SELECT"},
+				{Type: IDENT, Literal: "name"},
+				{Type: COMMA, Literal: ","},
+				{Type: IDENT, Literal: "age"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "name"},
+				{Type: EQ, Literal: "=="},
+				{Type: STRING, Literal: "John Doe"},
+				{Type: ORDER, Literal: "ORDER"},
+				{Type: BY, Literal: "BY"},
+				{Type: IDENT, Literal: "name"},
+				{Type: ASC, Literal: "ASC"},
+				{Type: COMMA, Literal: ","},
+				{Type: IDENT, Literal: "age"},
+				{Type: DESC, Literal: "DESC"},
+				{Type: LIMIT, Literal: "LIMIT"},
+				{Type: INT, Literal: "10"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

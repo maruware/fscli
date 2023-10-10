@@ -32,6 +32,10 @@ func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]*f
 		}
 	}
 
+	if op.limit > 0 {
+		q = q.Limit(op.limit)
+	}
+
 	itr := q.Documents(ctx)
 	defer itr.Stop()
 

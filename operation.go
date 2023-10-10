@@ -1,5 +1,7 @@
 package fscli
 
+import "cloud.google.com/go/firestore"
+
 type OperationType string
 
 const (
@@ -92,14 +94,20 @@ func (f *ArrayFilter) Value() any {
 	return f.value
 }
 
+type OrderBy struct {
+	field     string
+	direction firestore.Direction
+}
+
 type QueryOperation struct {
 	collection string
 	selects    []string
 	filters    []Filter
+	orderBys   []OrderBy
 }
 
-func NewQueryOperation(collection string, selects []string, filters []Filter) *QueryOperation {
-	return &QueryOperation{collection, selects, filters}
+func NewQueryOperation(collection string, selects []string, filters []Filter, orderBys []OrderBy) *QueryOperation {
+	return &QueryOperation{collection, selects, filters, orderBys}
 }
 
 func (op *QueryOperation) OperationType() OperationType {

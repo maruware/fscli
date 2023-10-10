@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"cloud.google.com/go/firestore"
 )
 
 type Parser struct {
@@ -62,32 +64,47 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 		}
 		op.selects = selects
 
+		if p.curTokenIs(EOF) {
+			return op, nil
+		}
+
 		p.nextToken()
 	}
 
-	if p.curTokenIs(EOF) {
-		return op, nil
+	if p.curTokenIs(WHERE) {
+		p.nextToken()
+		for !p.curTokenIs(EOF) {
+			filter, err := p.parseFilter()
+			if err != nil {
+				p.errors = append(p.errors, err.Error())
+				return nil, err
+			}
+			if filter != nil {
+				op.filters = append(op.filters, filter)
+			}
+
+			if !p.expectPeek(AND) {
+				break
+			}
+		}
+
+		if p.curTokenIs(EOF) {
+			return op, nil
+		}
+
+		p.nextToken()
 	}
 
-	if !p.curTokenIs(WHERE) {
-		return nil, fmt.Errorf("invalid: expected where but got %s", p.curToken.Literal)
-	}
-
-	p.nextToken()
-	for !p.curTokenIs(EOF) {
-		filter, err := p.parseFilter()
+	if p.curTokenIs(ORDER) {
+		p.nextToken()
+		if !p.curTokenIs(BY) {
+			return nil, fmt.Errorf("invalid: expected by but got %s", p.curToken.Type)
+		}
+		orderBys, err := p.parseOrderBy()
 		if err != nil {
-			p.errors = append(p.errors, err.Error())
 			return nil, err
 		}
-		if filter != nil {
-			op.filters = append(op.filters, filter)
-		}
-
-		if !p.expectPeek(AND) {
-			break
-		}
-		p.nextToken()
+		op.orderBys = orderBys
 	}
 
 	return op, nil
@@ -171,6 +188,38 @@ func (p *Parser) parseFilter() (Filter, error) {
 		return NewStringFilter(field, operator, p.curToken.Literal), nil
 	}
 	return nil, fmt.Errorf("invalid filter value: %s", p.curToken.Literal)
+}
+
+func (p *Parser) parseOrderBy() ([]OrderBy, error) {
+	orderBys := []OrderBy{}
+	for !p.curTokenIs(EOF) {
+		p.nextToken()
+		if !p.curTokenIs(IDENT) {
+			return nil, fmt.Errorf("invalid: expected field but got %s", p.curToken.Literal)
+		}
+		field := p.curToken.Literal
+		p.nextToken()
+
+		var fsDir firestore.Direction
+		if p.curTokenIs(EOF) {
+			fsDir = firestore.Asc
+		} else if !p.curTokenIs(DIRECTION) {
+			return nil, fmt.Errorf("invalid: expected direction but got %s", p.curToken.Literal)
+		}
+		direction := p.curToken.Literal
+		if direction == ASC {
+			fsDir = firestore.Asc
+		} else if direction == DESC {
+			fsDir = firestore.Desc
+		}
+
+		orderBys = append(orderBys, OrderBy{field, fsDir})
+
+		if !p.expectPeek(COMMA) {
+			return orderBys, nil
+		}
+	}
+	return orderBys, nil
 }
 
 func (p *Parser) parseArrayFilter(field string, operator Operator) (Filter, error) {

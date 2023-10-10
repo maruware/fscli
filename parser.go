@@ -203,13 +203,12 @@ func (p *Parser) parseOrderBy() ([]OrderBy, error) {
 		var fsDir firestore.Direction
 		if p.curTokenIs(EOF) {
 			fsDir = firestore.Asc
-		} else if !p.curTokenIs(DIRECTION) {
+		} else if !p.curTokenIs(ASC) && !p.curTokenIs(DESC) {
 			return nil, fmt.Errorf("invalid: expected direction but got %s", p.curToken.Literal)
 		}
-		direction := p.curToken.Literal
-		if direction == ASC {
+		if p.curTokenIs(ASC) {
 			fsDir = firestore.Asc
-		} else if direction == DESC {
+		} else if p.curTokenIs(DESC) {
 			fsDir = firestore.Desc
 		}
 

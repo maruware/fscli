@@ -229,7 +229,7 @@ func TestLexer(t *testing.T) {
 				{Type: ORDER, Literal: "ORDER"},
 				{Type: BY, Literal: "BY"},
 				{Type: IDENT, Literal: "name"},
-				{Type: DIRECTION, Literal: "ASC"},
+				{Type: ASC, Literal: "ASC"},
 			},
 		},
 		{
@@ -241,7 +241,7 @@ func TestLexer(t *testing.T) {
 				{Type: ORDER, Literal: "ORDER"},
 				{Type: BY, Literal: "BY"},
 				{Type: IDENT, Literal: "name"},
-				{Type: DIRECTION, Literal: "DESC"},
+				{Type: DESC, Literal: "DESC"},
 			},
 		},
 		{
@@ -253,10 +253,10 @@ func TestLexer(t *testing.T) {
 				{Type: ORDER, Literal: "ORDER"},
 				{Type: BY, Literal: "BY"},
 				{Type: IDENT, Literal: "name"},
-				{Type: DIRECTION, Literal: "ASC"},
+				{Type: ASC, Literal: "ASC"},
 				{Type: COMMA, Literal: ","},
 				{Type: IDENT, Literal: "age"},
-				{Type: DIRECTION, Literal: "DESC"},
+				{Type: DESC, Literal: "DESC"},
 			},
 		},
 	}

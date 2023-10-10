@@ -41,10 +41,6 @@ type Token struct {
 	Literal string
 }
 
-const (
-	DIRECTION = "DIRECTION"
-)
-
 var keywards = map[string]TokenType{
 	"GET":    GET,
 	"QUERY":  QUERY,
@@ -53,8 +49,8 @@ var keywards = map[string]TokenType{
 	"AND":    AND,
 	"ORDER":  ORDER,
 	"BY":     BY,
-	"ASC":    DIRECTION,
-	"DESC":   DIRECTION,
+	"ASC":    ASC,
+	"DESC":   DESC,
 }
 
 var operators = map[string]TokenType{

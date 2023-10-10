@@ -40,6 +40,18 @@ $ fscli --project-id my-project
 +----------------------+---------+-----+
 | ewpSGf5URC1L1vPENbxh | takashi |  20 |
 +----------------------+---------+-----+
+> QUERY users SELECT name WHERE age == 20 ORDER BY name ASC LIMIT 1
++----------------------+---------+
+|          ID          |  name   |
++----------------------+---------+
+| VfsA2DjQOWQmJ1LI8Xee | shigeru |
++----------------------+---------+
+> QUERY posts WHERE tags ARRAY_CONTAINS 'tech'
++----------------------+------------+----------------+
+|          ID          |   title    |      tags      |
++----------------------+------------+----------------+
+| nOsNxixUQ1rqNwVJz56O | First post | [tech finance] |
++----------------------+------------+----------------+
 ```
 
 ### JSON mode

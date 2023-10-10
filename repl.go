@@ -73,6 +73,19 @@ func (r *Repl) Start() {
 		r.processLine,
 		completer,
 		prompt.OptionPrefix("> "),
+		prompt.OptionSwitchKeyBindMode(prompt.CommonKeyBind),
+		prompt.OptionAddASCIICodeBind(prompt.ASCIICodeBind{
+			ASCIICode: []byte{0x1b, 0x62}, // Alt/Option + Left
+			Fn:        prompt.GoLeftWord,
+		}),
+		prompt.OptionAddASCIICodeBind(prompt.ASCIICodeBind{
+			ASCIICode: []byte{0x1b, 0x66}, // Alt/Option + Right
+			Fn:        prompt.GoRightWord,
+		}),
+		prompt.OptionAddKeyBind(prompt.KeyBind{
+			Key: prompt.ControlW,
+			Fn:  prompt.DeleteWord,
+		}),
 	)
 	p.Run()
 }

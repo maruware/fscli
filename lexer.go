@@ -119,7 +119,7 @@ func (l *Lexer) readString(quote rune) string {
 }
 
 func isLetter(ch rune) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '/'
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '/' || ch == '-' || ch == '.'
 }
 
 func (l *Lexer) skipWhitespace() {

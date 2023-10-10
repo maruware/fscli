@@ -214,14 +214,13 @@ func (p *Parser) parseOrderBy() ([]OrderBy, error) {
 			return nil, fmt.Errorf("invalid: expected field but got %s", p.curToken.Literal)
 		}
 		field := p.curToken.Literal
-		p.nextToken()
 
-		var fsDir firestore.Direction
-		if p.curTokenIs(EOF) {
-			fsDir = firestore.Asc
-		} else if !p.curTokenIs(ASC) && !p.curTokenIs(DESC) {
-			return nil, fmt.Errorf("invalid: expected direction but got %s", p.curToken.Literal)
+		var fsDir firestore.Direction = firestore.Asc
+		if !p.expectPeek(COMMA) && !p.expectPeek(ASC) && !p.expectPeek(DESC) {
+			orderBys = append(orderBys, OrderBy{field, fsDir})
+			break
 		}
+
 		if p.curTokenIs(ASC) {
 			fsDir = firestore.Asc
 		} else if p.curTokenIs(DESC) {

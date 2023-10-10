@@ -29,6 +29,8 @@ const (
 
 	AND = "AND"
 
+	LIMIT = "LIMIT"
+
 	LBRACKET = "["
 	RBRACKET = "]"
 	COMMA    = ","
@@ -51,6 +53,7 @@ var keywards = map[string]TokenType{
 	"BY":     BY,
 	"ASC":    ASC,
 	"DESC":   DESC,
+	"LIMIT":  LIMIT,
 }
 
 var operators = map[string]TokenType{

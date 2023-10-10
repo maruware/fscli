@@ -91,7 +91,6 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 		if p.curTokenIs(EOF) {
 			return op, nil
 		}
-
 		p.nextToken()
 	}
 
@@ -105,6 +104,23 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 			return nil, err
 		}
 		op.orderBys = orderBys
+
+		if p.curTokenIs(EOF) {
+			return op, nil
+		}
+		p.nextToken()
+	}
+
+	if p.curTokenIs(LIMIT) {
+		p.nextToken()
+		if !p.curTokenIs(INT) {
+			return nil, fmt.Errorf("invalid: expected int but got %s", p.curToken.Type)
+		}
+		limit, err := strconv.Atoi(p.curToken.Literal)
+		if err != nil {
+			return nil, fmt.Errorf("invalid: expected int but got %s", p.curToken.Literal)
+		}
+		op.limit = limit
 	}
 
 	return op, nil

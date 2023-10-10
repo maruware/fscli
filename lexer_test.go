@@ -220,6 +220,45 @@ func TestLexer(t *testing.T) {
 				{Type: STRING, Literal: "Hello World"},
 			},
 		},
+		{
+			desc:  "query with order by",
+			input: `QUERY users ORDER BY name ASC`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "users"},
+				{Type: ORDER, Literal: "ORDER"},
+				{Type: BY, Literal: "BY"},
+				{Type: IDENT, Literal: "name"},
+				{Type: DIRECTION, Literal: "ASC"},
+			},
+		},
+		{
+			desc:  "query with order by desc",
+			input: `QUERY users ORDER BY name DESC`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "users"},
+				{Type: ORDER, Literal: "ORDER"},
+				{Type: BY, Literal: "BY"},
+				{Type: IDENT, Literal: "name"},
+				{Type: DIRECTION, Literal: "DESC"},
+			},
+		},
+		{
+			desc:  "query with multiple order by",
+			input: `QUERY users ORDER BY name ASC, age DESC`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "users"},
+				{Type: ORDER, Literal: "ORDER"},
+				{Type: BY, Literal: "BY"},
+				{Type: IDENT, Literal: "name"},
+				{Type: DIRECTION, Literal: "ASC"},
+				{Type: COMMA, Literal: ","},
+				{Type: IDENT, Literal: "age"},
+				{Type: DIRECTION, Literal: "DESC"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

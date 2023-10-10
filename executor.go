@@ -26,6 +26,12 @@ func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]*f
 		q = q.Select(op.selects...)
 	}
 
+	if len(op.orderBys) > 0 {
+		for _, orderBy := range op.orderBys {
+			q = q.OrderBy(orderBy.field, firestore.Direction(orderBy.direction))
+		}
+	}
+
 	itr := q.Documents(ctx)
 	defer itr.Stop()
 

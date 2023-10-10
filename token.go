@@ -16,6 +16,11 @@ const (
 	IN                 = "IN"
 	ARRAY_CONTAINS     = "ARRAY_CONTAINS"
 	ARRAY_CONTAINS_ANY = "ARRAY_CONTAINS_ANY"
+	ORDER              = "ORDER"
+	BY                 = "BY"
+
+	ASC  = "ASC"
+	DESC = "DESC"
 
 	IDENT  = "IDENT"
 	STRING = "STRING"
@@ -36,12 +41,20 @@ type Token struct {
 	Literal string
 }
 
+const (
+	DIRECTION = "DIRECTION"
+)
+
 var keywards = map[string]TokenType{
 	"GET":    GET,
 	"QUERY":  QUERY,
 	"SELECT": SELECT,
 	"WHERE":  WHERE,
 	"AND":    AND,
+	"ORDER":  ORDER,
+	"BY":     BY,
+	"ASC":    DIRECTION,
+	"DESC":   DIRECTION,
 }
 
 var operators = map[string]TokenType{

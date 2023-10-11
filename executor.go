@@ -2,6 +2,7 @@ package fscli
 
 import (
 	"context"
+	"errors"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
@@ -11,12 +12,17 @@ type Executor struct {
 	fs *firestore.Client
 }
 
+var ErrInvalidCollection = errors.New("invalid collection")
+
 func NewExecutor(ctx context.Context, fs *firestore.Client) *Executor {
 	return &Executor{fs}
 }
 
 func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]*firestore.DocumentSnapshot, error) {
 	collection := exe.fs.Collection(op.Collection())
+	if collection == nil {
+		return nil, ErrInvalidCollection
+	}
 	q := collection.Query
 	for _, filter := range op.filters {
 		q = q.Where(filter.FieldName(), string(filter.Operator()), filter.Value())

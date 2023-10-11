@@ -42,36 +42,29 @@ func NewRepl(ctx context.Context, fs *firestore.Client, in io.Reader, out io.Wri
 	}
 }
 
-var rootSuggestions = []prompt.Suggest{
-	{Text: "GET", Description: "GET [docPath]"},
-	{Text: "QUERY", Description: "QUERY [collection]"},
-}
-
-var querySuggestions = []prompt.Suggest{
-	{Text: "SELECT", Description: "SELECT [field...]"},
-	{Text: "WHERE", Description: "WHERE [field] [operator] [value]"},
-}
-
-func completer(d prompt.Document) []prompt.Suggest {
+func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 	w := d.GetWordBeforeCursor()
 	if w == "" {
 		return []prompt.Suggest{}
 	}
-	if strings.HasPrefix(strings.ToUpper(d.CurrentLine()), "GET") {
+
+	text := d.TextBeforeCursor()
+	// trim inputting last word
+	text = strings.TrimSuffix(text, d.GetWordBeforeCursor())
+
+	c := NewCompleter(NewLexer(text))
+	suggestions, err := c.Parse()
+	if err != nil {
 		return []prompt.Suggest{}
 	}
-	// TODO: strict parse
-	if strings.HasPrefix(strings.ToUpper(d.CurrentLine()), "QUERY") {
-		return prompt.FilterHasPrefix(querySuggestions, d.GetWordBeforeCursor(), true)
-	}
 
-	return prompt.FilterHasPrefix(rootSuggestions, d.GetWordBeforeCursor(), true)
+	return prompt.FilterHasPrefix(suggestions, d.GetWordBeforeCursor(), true)
 }
 
 func (r *Repl) Start() {
 	p := prompt.New(
 		r.processLine,
-		completer,
+		r.completer,
 		prompt.OptionPrefix("> "),
 		prompt.OptionSwitchKeyBindMode(prompt.CommonKeyBind),
 		prompt.OptionAddASCIICodeBind(prompt.ASCIICodeBind{

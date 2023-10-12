@@ -11,7 +11,7 @@ const (
 	SELECT = "SELECT"
 
 	WHERE              = "WHERE"
-	EQ                 = "=="
+	EQ                 = "="
 	NOT_EQ             = "!="
 	IN                 = "IN"
 	ARRAY_CONTAINS     = "ARRAY_CONTAINS"

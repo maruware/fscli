@@ -38,18 +38,7 @@ func (l *Lexer) NextToken() Token {
 
 	switch l.ch {
 	case '=':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = Token{Type: EQ, Literal: literal}
-		} else {
-			// illegal
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = Token{Type: ILLEGAL, Literal: literal}
-		}
+		tok = newToken(EQ, l.ch)
 	case '!':
 		if l.peekChar() == '=' {
 			ch := l.ch

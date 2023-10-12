@@ -95,7 +95,7 @@ func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
 
 func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 	// collect keys
-	keys := []string{"ID"}
+	keys := []string{}
 	for _, doc := range docs {
 		for k := range doc.Data() {
 			if !slices.Contains(keys, k) {
@@ -103,24 +103,17 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 			}
 		}
 	}
+	slices.Sort(keys)
 
 	table := tablewriter.NewWriter(r.out)
 	table.SetAutoFormatHeaders(false)
-	table.SetHeader(keys)
+	table.SetHeader(append([]string{"ID"}, keys...))
 
 	for _, doc := range docs {
-		row := []string{}
+		row := []string{doc.Ref.ID}
 		for _, k := range keys {
-			if k == "ID" {
-				row = append(row, doc.Ref.ID)
-				continue
-			}
-			v, ok := doc.Data()[k]
-			if !ok {
-				row = append(row, "")
-				continue
-			}
-			row = append(row, fmt.Sprintf("%v", v))
+			val, ok := doc.Data()[k]
+			row = append(row, r.toTableCell(val, ok))
 		}
 		table.Append(row)
 	}
@@ -178,27 +171,20 @@ func (r *Repl) processLine(line string) {
 }
 
 func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
-	keys := []string{"ID"}
+	keys := []string{}
 	for k := range doc.Data() {
 		keys = append(keys, k)
 	}
+	slices.Sort(keys)
 
 	table := tablewriter.NewWriter(r.out)
 	table.SetAutoFormatHeaders(false)
-	table.SetHeader(keys)
+	table.SetHeader(append([]string{"ID"}, keys...))
 
-	row := []string{}
+	row := []string{doc.Ref.ID}
 	for _, k := range keys {
-		if k == "ID" {
-			row = append(row, doc.Ref.ID)
-			continue
-		}
-		v, ok := doc.Data()[k]
-		if !ok {
-			row = append(row, "")
-			continue
-		}
-		row = append(row, fmt.Sprintf("%v", v))
+		val, ok := doc.Data()[k]
+		row = append(row, r.toTableCell(val, ok))
 	}
 	table.Append(row)
 	table.Render()
@@ -212,5 +198,24 @@ func listUpCollections(ctx context.Context, fs *firestore.Client, out io.Writer)
 			break
 		}
 		fmt.Fprintf(out, "Collection: %s\n", col.ID)
+	}
+}
+
+func (r *Repl) toTableCell(val any, ok bool) string {
+	if !ok {
+		return "(undefined)"
+	}
+
+	switch v := val.(type) {
+	case string, int, float64, bool:
+		return fmt.Sprintf("%v", v)
+	case nil:
+		return "(null)"
+	default:
+		j, err := json.Marshal(v)
+		if err != nil {
+			return "(invalid)"
+		}
+		return string(j)
 	}
 }

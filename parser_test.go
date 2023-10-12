@@ -20,21 +20,21 @@ func TestParse(t *testing.T) {
 		},
 		{
 			desc:  "query with where",
-			input: `QUERY user WHERE name == "John Doe"`,
+			input: `QUERY user WHERE name = "John Doe"`,
 			want: &QueryOperation{collection: "user", filters: []Filter{
 				NewStringFilter("name", "==", "John Doe"),
 			}},
 		},
 		{
 			desc:  "query with int",
-			input: `QUERY user WHERE age == 20`,
+			input: `QUERY user WHERE age = 20`,
 			want: &QueryOperation{collection: "user", filters: []Filter{
 				NewIntFilter("age", OPERATOR_EQ, 20),
 			}},
 		},
 		{
 			desc:  "query with float",
-			input: `QUERY user WHERE age == 20.5`,
+			input: `QUERY user WHERE age = 20.5`,
 			want: &QueryOperation{collection: "user", filters: []Filter{
 				NewFloatFilter("age", OPERATOR_EQ, 20.5),
 			}},
@@ -79,7 +79,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			desc:  "query with select and where",
-			input: `QUERY user SELECT name, age WHERE age == 20`,
+			input: `QUERY user SELECT name, age WHERE age = 20`,
 			want:  &QueryOperation{collection: "user", selects: []string{"name", "age"}, filters: []Filter{NewIntFilter("age", OPERATOR_EQ, 20)}},
 		},
 		{
@@ -94,7 +94,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			desc:  "query with order by and select and where",
-			input: `QUERY user SELECT name, age WHERE age == 20 ORDER BY age ASC`,
+			input: `QUERY user SELECT name, age WHERE age = 20 ORDER BY age ASC`,
 			want: &QueryOperation{collection: "user", selects: []string{"name", "age"}, filters: []Filter{
 				NewIntFilter("age", OPERATOR_EQ, 20),
 			}, orderBys: []OrderBy{{"age", firestore.Asc}}},
@@ -106,14 +106,14 @@ func TestParse(t *testing.T) {
 		},
 		{
 			desc:  "query with limit and order by and select and where",
-			input: `QUERY user SELECT name, age WHERE age == 20 ORDER BY age LIMIT 10`,
+			input: `QUERY user SELECT name, age WHERE age = 20 ORDER BY age LIMIT 10`,
 			want: &QueryOperation{collection: "user", selects: []string{"name", "age"}, filters: []Filter{
 				NewIntFilter("age", OPERATOR_EQ, 20),
 			}, orderBys: []OrderBy{{"age", firestore.Asc}}, limit: 10},
 		},
 		{
 			desc:  "query with limit and order by desc and select and where",
-			input: `QUERY user SELECT name, age WHERE age == 20 ORDER BY age DESC LIMIT 10`,
+			input: `QUERY user SELECT name, age WHERE age = 20 ORDER BY age DESC LIMIT 10`,
 			want: &QueryOperation{collection: "user", selects: []string{"name", "age"}, filters: []Filter{
 				NewIntFilter("age", OPERATOR_EQ, 20),
 			}, orderBys: []OrderBy{{"age", firestore.Desc}}, limit: 10},

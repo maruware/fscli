@@ -21,14 +21,14 @@ $ fscli --project-id my-project
 | VfsA2DjQOWQmJ1LI8Xee | shigeru |  20 |
 | ewpSGf5URC1L1vPENbxh | takashi |  20 |
 +----------------------+---------+-----+
-> QUERY users WHERE age == 20
+> QUERY users WHERE age = 20
 +----------------------+---------+-----+
 |          ID          |  name   | age |
 +----------------------+---------+-----+
 | VfsA2DjQOWQmJ1LI8Xee | shigeru |  20 |
 | ewpSGf5URC1L1vPENbxh | takashi |  20 |
 +----------------------+---------+-----+
-> QUERY users WHERE name == "takashi" AND age == 20;
+> QUERY users WHERE name = "takashi" AND age = 20;
 +----------------------+---------+-----+
 |          ID          |  name   | age |
 +----------------------+---------+-----+
@@ -40,7 +40,7 @@ $ fscli --project-id my-project
 +----------------------+---------+-----+
 | ewpSGf5URC1L1vPENbxh | takashi |  20 |
 +----------------------+---------+-----+
-> QUERY users SELECT name WHERE age == 20 ORDER BY name ASC LIMIT 1
+> QUERY users SELECT name WHERE age = 20 ORDER BY name ASC LIMIT 1
 +----------------------+---------+
 |          ID          |  name   |
 +----------------------+---------+

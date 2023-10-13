@@ -36,6 +36,7 @@ const (
 	COMMA    = ","
 
 	LIST_COLLECTIONS = "LIST_COLLECTIONS"
+	PAGER            = "PAGER"
 )
 
 type TokenType = string
@@ -67,7 +68,8 @@ var operators = map[string]TokenType{
 }
 
 var metacommands = map[string]TokenType{
-	"\\d": LIST_COLLECTIONS,
+	`\d`:     LIST_COLLECTIONS,
+	`\pager`: PAGER,
 }
 
 func LookupIdent(ident string) TokenType {

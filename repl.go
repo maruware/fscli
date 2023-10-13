@@ -124,22 +124,30 @@ func (r *Repl) processLine(line string) {
 	if strings.TrimSpace(line) == "" {
 		return
 	}
-	if strings.TrimSpace(line) == "\\d" {
-		listUpCollections(r.ctx, r.fs, r.out)
-		return
-	}
 
 	lexer := NewLexer(line)
 	parser := NewParser(lexer)
-	op, err := parser.Parse()
+	result, err := parser.Parse()
 	if err != nil {
 		fmt.Fprintf(r.out, "error: %s\n", err)
 		return
 	}
-	if op == nil {
+	if result == nil {
 		return
 	}
-	if op, ok := op.(*QueryOperation); ok {
+
+	if op, ok := result.(*MetacommandListCollections); ok {
+		cols, err := r.exe.ExecuteListCollections(r.ctx, op)
+		if err != nil {
+			fmt.Fprintf(r.out, "error: %s\n", err)
+			return
+		}
+		for _, col := range cols {
+			fmt.Fprintf(r.out, "%s\n", col)
+		}
+	}
+
+	if op, ok := result.(*QueryOperation); ok {
 		docs, err := r.exe.ExecuteQuery(r.ctx, op)
 		if err != nil {
 			fmt.Fprintf(r.out, "error: %s\n", err)
@@ -155,7 +163,7 @@ func (r *Repl) processLine(line string) {
 			r.outputDocsTable(docs)
 		}
 	}
-	if op, ok := op.(*GetOperation); ok {
+	if op, ok := result.(*GetOperation); ok {
 		doc, err := r.exe.ExecuteGet(r.ctx, op)
 		if err != nil {
 			fmt.Fprintf(r.out, "error: %s\n", err)
@@ -188,17 +196,6 @@ func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
 	}
 	table.Append(row)
 	table.Render()
-}
-
-func listUpCollections(ctx context.Context, fs *firestore.Client, out io.Writer) {
-	cols := fs.Collections(ctx)
-	for {
-		col, err := cols.Next()
-		if err != nil {
-			break
-		}
-		fmt.Fprintf(out, "Collection: %s\n", col.ID)
-	}
 }
 
 func (r *Repl) toTableCell(val any, ok bool) string {

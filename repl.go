@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"cloud.google.com/go/firestore"
 	"github.com/c-bata/go-prompt"
 	"github.com/olekukonko/tablewriter"
+	"github.com/shibukawa/configdir"
 	"golang.org/x/exp/slices"
 )
 
@@ -20,6 +23,12 @@ type OutputMode string
 const (
 	OutputModeJSON  OutputMode = "json"
 	OutputModeTable OutputMode = "table"
+)
+
+const (
+	VENDOR_NAME  = "maruware"
+	APP_NAME     = "fscli"
+	HISTORY_FILE = "history"
 )
 
 type Repl struct {
@@ -62,6 +71,8 @@ func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 }
 
 func (r *Repl) Start() {
+	history := r.readHistory()
+
 	p := prompt.New(
 		r.processLine,
 		r.completer,
@@ -79,6 +90,7 @@ func (r *Repl) Start() {
 			Key: prompt.ControlW,
 			Fn:  prompt.DeleteWord,
 		}),
+		prompt.OptionHistory(history),
 	)
 	p.Run()
 }
@@ -122,6 +134,12 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 
 func (r *Repl) processLine(line string) {
 	if strings.TrimSpace(line) == "" {
+		return
+	}
+
+	err := r.writeHistory(line)
+	if err != nil {
+		fmt.Fprintf(r.out, "error: %s\n", err)
 		return
 	}
 
@@ -215,4 +233,41 @@ func (r *Repl) toTableCell(val any, ok bool) string {
 		}
 		return string(j)
 	}
+}
+
+func (r *Repl) writeHistory(line string) error {
+	configDirs := configdir.New(VENDOR_NAME, APP_NAME)
+	folders := configDirs.QueryFolders(configdir.Global)
+	if len(folders) == 0 {
+		return fmt.Errorf("no config folder")
+	}
+	folder := folders[0]
+	err := folder.MkdirAll()
+	if err != nil {
+		return err
+	}
+	f, err := os.OpenFile(filepath.Join(folder.Path, HISTORY_FILE), os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(line + "\n"); err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (r *Repl) readHistory() []string {
+	configDirs := configdir.New(VENDOR_NAME, APP_NAME)
+	folder := configDirs.QueryFolderContainsFile(HISTORY_FILE)
+	if folder != nil {
+		data, err := folder.ReadFile(HISTORY_FILE)
+		if err != nil {
+			return []string{}
+		}
+		return strings.Split(string(data), "\n")
+	}
+	return []string{}
 }

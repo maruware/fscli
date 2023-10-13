@@ -34,6 +34,8 @@ const (
 	LBRACKET = "["
 	RBRACKET = "]"
 	COMMA    = ","
+
+	LIST_COLLECTIONS = "LIST_COLLECTIONS"
 )
 
 type TokenType = string
@@ -64,6 +66,10 @@ var operators = map[string]TokenType{
 	"ARRAY_CONTAINS_ANY": ARRAY_CONTAINS_ANY,
 }
 
+var metacommands = map[string]TokenType{
+	"\\d": LIST_COLLECTIONS,
+}
+
 func LookupIdent(ident string) TokenType {
 	u := strings.ToUpper(ident)
 	if tok, ok := keywards[u]; ok {
@@ -73,4 +79,11 @@ func LookupIdent(ident string) TokenType {
 		return tok
 	}
 	return IDENT
+}
+
+func LookupMetacommand(s string) TokenType {
+	if tok, ok := metacommands[s]; ok {
+		return tok
+	}
+	return ILLEGAL
 }

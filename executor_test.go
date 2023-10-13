@@ -12,7 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func seed(c *firestore.Client, usersCollection string) error {
+func seed(c *firestore.Client) error {
 	ctx := context.Background()
 
 	g := errgroup.Group{}
@@ -20,7 +20,7 @@ func seed(c *firestore.Client, usersCollection string) error {
 		i := i
 		g.Go(func() error {
 			userId := strconv.Itoa(i)
-			_, err := c.Collection(usersCollection).Doc(userId).Set(ctx, map[string]interface{}{
+			_, err := c.Collection("users").Doc(userId).Set(ctx, map[string]interface{}{
 				"name": fmt.Sprintf("user-%d", i),
 				"age":  20 + i,
 				"nicknames": []string{
@@ -32,7 +32,7 @@ func seed(c *firestore.Client, usersCollection string) error {
 				return err
 			}
 			postId := fmt.Sprintf("post%d", i)
-			postsCollection := fmt.Sprintf("%s/%s/posts", usersCollection, userId)
+			postsCollection := fmt.Sprintf("%s/%s/posts", "users", userId)
 			_, err = c.Collection(postsCollection).Doc(postId).Set(ctx, map[string]interface{}{
 				"title": fmt.Sprintf("post-%d", i),
 			})
@@ -48,10 +48,10 @@ func seed(c *firestore.Client, usersCollection string) error {
 	return err
 }
 
-func cleanSeed(c *firestore.Client, usersCollection string) error {
+func cleanSeed(c *firestore.Client) error {
 	ctx := context.Background()
 
-	usersItr := c.Collection(usersCollection).Query.Documents(ctx)
+	usersItr := c.Collection("users").Query.Documents(ctx)
 	for {
 		doc, err := usersItr.Next()
 		if err != nil {
@@ -62,7 +62,7 @@ func cleanSeed(c *firestore.Client, usersCollection string) error {
 			return err
 		}
 
-		postCollection := fmt.Sprintf("%s/%s/posts", usersCollection, doc.Ref.ID)
+		postCollection := fmt.Sprintf("%s/%s/posts", "users", doc.Ref.ID)
 		postItr := doc.Ref.Collection(postCollection).Query.Documents(ctx)
 		for {
 			postDoc, err := postItr.Next()
@@ -81,7 +81,7 @@ func cleanSeed(c *firestore.Client, usersCollection string) error {
 func TestQuery(t *testing.T) {
 	os.Setenv("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080")
 	ctx := context.Background()
-	fs, err := firestore.NewClient(ctx, "test-project")
+	fs, err := firestore.NewClient(ctx, "fscli-executor-test-query")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,14 +94,11 @@ func TestQuery(t *testing.T) {
 		t.Fatal("executor is nil")
 	}
 
-	prefix := "fscli-executor-test-query"
-	usersCollection := prefix + "-users"
-
-	err = seed(fs, usersCollection)
+	err = seed(fs)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanSeed(fs, usersCollection)
+	defer cleanSeed(fs)
 
 	tests := []struct {
 		desc  string
@@ -110,7 +107,7 @@ func TestQuery(t *testing.T) {
 	}{
 		{
 			desc:  "simple query",
-			input: &QueryOperation{collection: usersCollection},
+			input: &QueryOperation{collection: "users"},
 			want: []map[string]any{
 				{"name": "user-0", "age": int64(20), "nicknames": []any{"u-0-1", "u-0-2"}},
 				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
@@ -121,7 +118,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with where",
-			input: &QueryOperation{collection: usersCollection, filters: []Filter{
+			input: &QueryOperation{collection: "users", filters: []Filter{
 				NewStringFilter("name", "==", "user-1"),
 			}},
 			want: []map[string]any{
@@ -134,7 +131,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with subcollection",
-			input: &QueryOperation{collection: fmt.Sprintf("%s/1/posts", usersCollection), filters: []Filter{
+			input: &QueryOperation{collection: fmt.Sprintf("%s/1/posts", "users"), filters: []Filter{
 				NewStringFilter("title", "==", "post-1"),
 			}},
 			want: []map[string]any{
@@ -145,7 +142,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with not equal",
-			input: &QueryOperation{collection: usersCollection, filters: []Filter{
+			input: &QueryOperation{collection: "users", filters: []Filter{
 				NewStringFilter("name", "!=", "user-1"),
 			}},
 			want: []map[string]any{
@@ -157,7 +154,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with and",
-			input: &QueryOperation{collection: usersCollection, filters: []Filter{
+			input: &QueryOperation{collection: "users", filters: []Filter{
 				NewStringFilter("name", "==", "user-1"),
 				NewIntFilter("age", "==", 21),
 			}},
@@ -167,7 +164,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with IN",
-			input: &QueryOperation{collection: usersCollection, filters: []Filter{
+			input: &QueryOperation{collection: "users", filters: []Filter{
 				NewArrayFilter("age", "in", []any{20, 21, 22}),
 			}},
 			want: []map[string]any{
@@ -178,7 +175,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with array-contains",
-			input: &QueryOperation{collection: usersCollection, filters: []Filter{
+			input: &QueryOperation{collection: "users", filters: []Filter{
 				NewStringFilter("nicknames", "array-contains", "u-1-1"),
 			}},
 			want: []map[string]any{
@@ -187,7 +184,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc: "query with array-contains-any",
-			input: &QueryOperation{collection: usersCollection, filters: []Filter{
+			input: &QueryOperation{collection: "users", filters: []Filter{
 				NewArrayFilter("nicknames", "array-contains-any", []any{"u-1-1", "u-2-1"}),
 			}},
 			want: []map[string]any{
@@ -197,7 +194,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc:  "query with select",
-			input: &QueryOperation{collection: usersCollection, selects: []string{"name", "age"}},
+			input: &QueryOperation{collection: "users", selects: []string{"name", "age"}},
 			want: []map[string]any{
 				{"name": "user-0", "age": int64(20)},
 				{"name": "user-1", "age": int64(21)},
@@ -208,14 +205,14 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc:  "query with select and where",
-			input: &QueryOperation{collection: usersCollection, selects: []string{"name", "age"}, filters: []Filter{NewStringFilter("name", "==", "user-1")}},
+			input: &QueryOperation{collection: "users", selects: []string{"name", "age"}, filters: []Filter{NewStringFilter("name", "==", "user-1")}},
 			want: []map[string]any{
 				{"name": "user-1", "age": int64(21)},
 			},
 		},
 		{
 			desc:  "query with order by",
-			input: &QueryOperation{collection: usersCollection, orderBys: []OrderBy{{"age", firestore.Desc}}},
+			input: &QueryOperation{collection: "users", orderBys: []OrderBy{{"age", firestore.Desc}}},
 			want: []map[string]any{
 				{"name": "user-4", "age": int64(24), "nicknames": []any{"u-4-1", "u-4-2"}},
 				{"name": "user-3", "age": int64(23), "nicknames": []any{"u-3-1", "u-3-2"}},
@@ -226,7 +223,7 @@ func TestQuery(t *testing.T) {
 		},
 		{
 			desc:  "query with limit",
-			input: &QueryOperation{collection: usersCollection, limit: 2},
+			input: &QueryOperation{collection: "users", limit: 2},
 			want: []map[string]any{
 				{"name": "user-0", "age": int64(20), "nicknames": []any{"u-0-1", "u-0-2"}},
 				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
@@ -266,14 +263,11 @@ func TestInvalidQuery(t *testing.T) {
 		t.Fatal("executor is nil")
 	}
 
-	prefix := "fscli-executor-test-invalid-query"
-	usersCollection := prefix + "-users"
-
-	err = seed(fs, usersCollection)
+	err = seed(fs)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanSeed(fs, usersCollection)
+	defer cleanSeed(fs)
 
 	tests := []struct {
 		desc  string
@@ -282,7 +276,7 @@ func TestInvalidQuery(t *testing.T) {
 	}{
 		{
 			desc:  "query with invalid collection",
-			input: &QueryOperation{collection: usersCollection + "/abc"},
+			input: &QueryOperation{collection: "users" + "/abc"},
 			err:   ErrInvalidCollection,
 		},
 	}
@@ -298,7 +292,7 @@ func TestInvalidQuery(t *testing.T) {
 func TestGet(t *testing.T) {
 	os.Setenv("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080")
 	ctx := context.Background()
-	fs, err := firestore.NewClient(ctx, "test-project")
+	fs, err := firestore.NewClient(ctx, "fscli-executor-test-get")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,14 +305,11 @@ func TestGet(t *testing.T) {
 		t.Fatal("executor is nil")
 	}
 
-	prefix := "fscli-executor-test-get"
-	usersCollection := prefix + "-users"
-
-	err = seed(fs, usersCollection)
+	err = seed(fs)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanSeed(fs, usersCollection)
+	defer cleanSeed(fs)
 
 	tests := []struct {
 		desc  string
@@ -327,7 +318,7 @@ func TestGet(t *testing.T) {
 	}{
 		{
 			desc:  "get",
-			input: NewGetOperation(usersCollection, "1"),
+			input: NewGetOperation("users", "1"),
 			want: map[string]any{
 				"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"},
 			},
@@ -341,6 +332,66 @@ func TestGet(t *testing.T) {
 				t.Fatal(err)
 			}
 			assert.Equal(t, tt.want, doc.Data())
+		})
+	}
+}
+
+func TestListCollections(t *testing.T) {
+	seed := func(c *firestore.Client) error {
+		ctx := context.Background()
+
+		_, err := c.Collection("users").Doc("1").Set(ctx, map[string]interface{}{
+			"name": "user-1",
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = c.Collection("users").Doc("1").Collection("posts").Doc("1").Set(ctx, map[string]interface{}{
+			"title": "post-1",
+		})
+
+		return err
+	}
+
+	usersCollection := "users"
+
+	ctx := context.Background()
+	fs, err := firestore.NewClient(ctx, "fscli-executor-test-list-cols")
+	if err != nil {
+		t.Fatal(err)
+	}
+	exe := NewExecutor(ctx, fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	seed(fs)
+
+	tests := []struct {
+		desc  string
+		input *MetacommandListCollections
+		want  []string
+	}{
+		{
+			"list collections",
+			&MetacommandListCollections{},
+			[]string{usersCollection},
+		},
+		{
+			desc:  "list subcollections",
+			input: &MetacommandListCollections{baseDoc: fmt.Sprintf("%s/1", usersCollection)},
+			want:  []string{"posts"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			cols, err := exe.ExecuteListCollections(ctx, tt.input)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, tt.want, cols)
 		})
 	}
 }

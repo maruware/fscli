@@ -20,3 +20,12 @@ type MetacommandListCollections struct {
 func (m *MetacommandListCollections) MetacommandType() string {
 	return "ListCollection"
 }
+
+type MetacommandPager struct {
+	BaseMetacommand
+	on bool
+}
+
+func (m *MetacommandPager) MetacommandType() string {
+	return "Pager"
+}

@@ -301,6 +301,14 @@ func TestLexer(t *testing.T) {
 				{Type: LIST_COLLECTIONS, Literal: `\d`},
 			},
 		},
+		{
+			desc:  "pager on",
+			input: `\pager on`,
+			want: []Token{
+				{Type: PAGER, Literal: `\pager`},
+				{Type: IDENT, Literal: "on"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

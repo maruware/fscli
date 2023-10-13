@@ -1,11 +1,13 @@
 package fscli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -32,22 +34,24 @@ const (
 )
 
 type Repl struct {
-	ctx        context.Context
-	fs         *firestore.Client
-	in         io.Reader
-	out        io.Writer
-	outputMode OutputMode
-	exe        *Executor
+	ctx          context.Context
+	fs           *firestore.Client
+	in           io.Reader
+	out          io.Writer
+	outputMode   OutputMode
+	exe          *Executor
+	enabledPager bool
 }
 
 func NewRepl(ctx context.Context, fs *firestore.Client, in io.Reader, out io.Writer, outputMode OutputMode) *Repl {
 	return &Repl{
-		ctx:        ctx,
-		fs:         fs,
-		in:         in,
-		out:        out,
-		outputMode: outputMode,
-		exe:        NewExecutor(ctx, fs),
+		ctx:          ctx,
+		fs:           fs,
+		in:           in,
+		out:          out,
+		outputMode:   outputMode,
+		exe:          NewExecutor(ctx, fs),
+		enabledPager: false,
 	}
 }
 
@@ -106,6 +110,20 @@ func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
 }
 
 func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
+	var out io.Writer = r.out
+	var pager *exec.Cmd
+	if r.enabledPager {
+		var buffer bytes.Buffer
+		cmd := "less"
+		if env := os.Getenv("PAGER"); env != "" {
+			cmd = env
+		}
+		pager = exec.Command(cmd)
+		pager.Stdin = &buffer
+		pager.Stdout = r.out
+		out = &buffer
+	}
+
 	// collect keys
 	keys := []string{}
 	for _, doc := range docs {
@@ -117,7 +135,7 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 	}
 	slices.Sort(keys)
 
-	table := tablewriter.NewWriter(r.out)
+	table := tablewriter.NewWriter(out)
 	table.SetAutoFormatHeaders(false)
 	table.SetHeader(append([]string{"ID"}, keys...))
 
@@ -130,6 +148,12 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 		table.Append(row)
 	}
 	table.Render()
+
+	if pager != nil {
+		if err := pager.Run(); err != nil {
+			fmt.Fprintf(r.out, "error: %s\n", err)
+		}
+	}
 }
 
 func (r *Repl) processLine(line string) {

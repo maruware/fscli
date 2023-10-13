@@ -139,7 +139,7 @@ func (p *Parser) parseGetOperation() (*GetOperation, error) {
 		return nil, fmt.Errorf("invalid: expected path but got %s", p.curToken.Literal)
 	}
 
-	path := p.curToken.Literal
+	path := p.trimHeadSlash(p.curToken.Literal)
 	lastSlash := strings.LastIndex(path, "/")
 	if lastSlash == -1 {
 		return nil, fmt.Errorf("invalid")

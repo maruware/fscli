@@ -10,8 +10,16 @@ const (
 )
 
 type Operation interface {
+	Type() string
 	OperationType() OperationType
 	Collection() string
+}
+
+type BaseOperation struct {
+}
+
+func (op *BaseOperation) Type() string {
+	return "Operation"
 }
 
 type Operator string
@@ -100,6 +108,7 @@ type OrderBy struct {
 }
 
 type QueryOperation struct {
+	BaseOperation
 	collection string
 	selects    []string
 	filters    []Filter
@@ -108,7 +117,7 @@ type QueryOperation struct {
 }
 
 func NewQueryOperation(collection string, selects []string, filters []Filter, orderBys []OrderBy, limit int) *QueryOperation {
-	return &QueryOperation{collection, selects, filters, orderBys, limit}
+	return &QueryOperation{collection: collection, selects: selects, filters: filters, orderBys: orderBys, limit: limit}
 }
 
 func (op *QueryOperation) OperationType() OperationType {
@@ -120,12 +129,13 @@ func (op *QueryOperation) Collection() string {
 }
 
 type GetOperation struct {
+	BaseOperation
 	collection string
 	docId      string
 }
 
 func NewGetOperation(collection string, docId string) *GetOperation {
-	return &GetOperation{collection, docId}
+	return &GetOperation{collection: collection, docId: docId}
 }
 
 func (op *GetOperation) OperationType() OperationType {

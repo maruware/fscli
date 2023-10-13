@@ -294,6 +294,13 @@ func TestLexer(t *testing.T) {
 				{Type: INT, Literal: "10"},
 			},
 		},
+		{
+			desc:  "list collections",
+			input: `\d`,
+			want: []Token{
+				{Type: LIST_COLLECTIONS, Literal: `\d`},
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -15,6 +15,10 @@ type Parser struct {
 	errors    []string
 }
 
+type ParseResult interface {
+	Type() string
+}
+
 func NewParser(l *Lexer) *Parser {
 	p := &Parser{l: l, errors: []string{}}
 
@@ -30,8 +34,10 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) Parse() (Operation, error) {
-
+func (p *Parser) Parse() (ParseResult, error) {
+	if p.curTokenIsMetacommand() {
+		return p.parseMetacommand()
+	}
 	if p.curTokenIs(QUERY) {
 		return p.parseQueryOperation()
 	}
@@ -266,8 +272,26 @@ func (p *Parser) parseArrayFilter(field string, operator Operator) (Filter, erro
 	return NewArrayFilter(field, operator, values), nil
 }
 
+func (p *Parser) parseMetacommand() (Metacommand, error) {
+	if p.curTokenIs(LIST_COLLECTIONS) {
+		if p.peekTokenIs(EOF) {
+			return &MetacommandListCollections{}, nil
+		}
+		if p.peekTokenIs(IDENT) {
+			p.nextToken()
+			return &MetacommandListCollections{baseDoc: p.curToken.Literal}, nil
+		}
+		return nil, fmt.Errorf("invalid: expected base doc but got %s", p.peekToken.Literal)
+	}
+	return nil, fmt.Errorf("invalid metacommand: %s", p.curToken.Literal)
+}
+
 func (p *Parser) Errors() []string {
 	return p.errors
+}
+
+func (p *Parser) curTokenIsMetacommand() bool {
+	return p.curTokenIs(LIST_COLLECTIONS)
 }
 
 func (p *Parser) curTokenIs(t TokenType) bool {

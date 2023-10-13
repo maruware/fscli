@@ -11,7 +11,7 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		desc  string
 		input string
-		want  Operation
+		want  ParseResult
 	}{
 		{
 			desc:  "simple query",
@@ -117,6 +117,32 @@ func TestParse(t *testing.T) {
 			want: &QueryOperation{collection: "user", selects: []string{"name", "age"}, filters: []Filter{
 				NewIntFilter("age", OPERATOR_EQ, 20),
 			}, orderBys: []OrderBy{{"age", firestore.Desc}}, limit: 10},
+		},
+		{
+			desc:  "list collections",
+			input: `\d`,
+			want:  &MetacommandListCollections{},
+		},
+		{
+			desc:  "list subcollections",
+			input: `\d user/1`,
+			want: &MetacommandListCollections{
+				baseDoc: "user/1",
+			},
+		},
+		{
+			desc:  "pager on",
+			input: `\pager on`,
+			want: &MetacommandPager{
+				on: true,
+			},
+		},
+		{
+			desc:  "pager off",
+			input: `\pager off`,
+			want: &MetacommandPager{
+				on: false,
+			},
 		},
 	}
 

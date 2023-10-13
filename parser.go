@@ -283,6 +283,22 @@ func (p *Parser) parseMetacommand() (Metacommand, error) {
 		}
 		return nil, fmt.Errorf("invalid: expected base doc but got %s", p.peekToken.Literal)
 	}
+
+	if p.curTokenIs(PAGER) {
+		p.nextToken()
+		if p.curTokenIs(EOF) {
+			return nil, fmt.Errorf("invalid: expected on/off but got %s", p.curToken.Literal)
+		}
+		if p.curTokenIs(IDENT) {
+			if p.curToken.Literal == "on" {
+				return &MetacommandPager{on: true}, nil
+			}
+			if p.curToken.Literal == "off" {
+				return &MetacommandPager{on: false}, nil
+			}
+		}
+	}
+
 	return nil, fmt.Errorf("invalid metacommand: %s", p.curToken.Literal)
 }
 
@@ -291,7 +307,13 @@ func (p *Parser) Errors() []string {
 }
 
 func (p *Parser) curTokenIsMetacommand() bool {
-	return p.curTokenIs(LIST_COLLECTIONS)
+	if p.curTokenIs(LIST_COLLECTIONS) {
+		return true
+	}
+	if p.curTokenIs(PAGER) {
+		return true
+	}
+	return false
 }
 
 func (p *Parser) curTokenIs(t TokenType) bool {

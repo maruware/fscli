@@ -64,6 +64,12 @@ func (l *Lexer) NextToken() Token {
 		tok = newToken(RBRACKET, l.ch)
 	case ',':
 		tok = newToken(COMMA, l.ch)
+	case '\\':
+		if isLetter(l.peekChar()) {
+			l.readChar()
+			tok.Literal = `\` + l.readIdentifier()
+			tok.Type = LookupMetacommand(tok.Literal)
+		}
 	case 0:
 		tok.Literal = ""
 		tok.Type = EOF

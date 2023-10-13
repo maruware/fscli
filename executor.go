@@ -3,6 +3,7 @@ package fscli
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
@@ -66,4 +67,42 @@ func (exe *Executor) ExecuteGet(ctx context.Context, op *GetOperation) (*firesto
 		return nil, err
 	}
 	return doc, nil
+}
+
+func (exe *Executor) ExecuteListCollections(ctx context.Context, cmd *MetacommandListCollections) ([]string, error) {
+	parts := strings.Split(cmd.baseDoc, "/")
+
+	docParts := make([][2]string, 0)
+	for i, part := range parts {
+		if i%2 == 1 {
+			docParts = append(docParts, [2]string{parts[i-1], part})
+		}
+	}
+
+	var docBase *firestore.DocumentRef
+	for _, docPart := range docParts {
+		if docBase == nil {
+			docBase = exe.fs.Collection(docPart[0]).Doc(docPart[1])
+		} else {
+			docBase = docBase.Collection(docPart[0]).Doc(docPart[1])
+		}
+	}
+
+	if docBase == nil {
+		return allCollections(exe.fs.Collections(ctx)), nil
+	}
+
+	return allCollections(docBase.Collections(ctx)), nil
+}
+
+func allCollections(itr *firestore.CollectionIterator) []string {
+	cols := make([]string, 0)
+	for {
+		col, err := itr.Next()
+		if err != nil {
+			break
+		}
+		cols = append(cols, col.ID)
+	}
+	return cols
 }

@@ -16,7 +16,17 @@ func TestCompleter(t *testing.T) {
 		{
 			desc:  "root",
 			input: ``,
-			want:  rootSuggestions,
+			want:  []prompt.Suggest{},
+		},
+		{
+			desc:  "middle of query",
+			input: `QUE`,
+			want:  []prompt.Suggest{querySuggestion},
+		},
+		{
+			desc:  "middle of get",
+			input: `GE`,
+			want:  []prompt.Suggest{getSuggestion},
 		},
 		{
 			desc:  "query",
@@ -24,19 +34,34 @@ func TestCompleter(t *testing.T) {
 			want:  []prompt.Suggest{},
 		},
 		{
-			desc:  "query with collection",
-			input: `QUERY user`,
-			want:  querySuggestions,
+			desc:  "get",
+			input: `GET`,
+			want:  []prompt.Suggest{},
+		},
+		{
+			desc:  "middle of query with collection",
+			input: `QUERY us`,
+			want:  []prompt.Suggest{},
+		},
+		{
+			desc:  "middle of query with select",
+			input: `QUERY user S`,
+			want:  []prompt.Suggest{selectSuggestion},
 		},
 		{
 			desc:  "query with select and no field",
-			input: `QUERY user SELECT`,
+			input: `QUERY user SELECT `,
 			want:  []prompt.Suggest{},
 		},
 		{
 			desc:  "query with select and field",
 			input: `QUERY user SELECT name`,
-			want:  querySuggestions[1:],
+			want:  []prompt.Suggest{},
+		},
+		{
+			desc:  "middle of where",
+			input: `QUERY user SELECT name W`,
+			want:  []prompt.Suggest{whereSuggestion},
 		},
 		{
 			desc:  "query with select and field and where",
@@ -45,15 +70,24 @@ func TestCompleter(t *testing.T) {
 		},
 		{
 			desc:  "query with select and field and where and field",
-			input: `QUERY user SELECT name WHERE name`,
+			input: `QUERY user SELECT name WHERE name `,
 			// TODO: should return operators
-			want: querySuggestions[2:],
+			want: []prompt.Suggest{},
 		},
 		{
 			desc:  "query with select and field and where and field and operator",
 			input: `QUERY user SELECT name WHERE name ==`,
-			// TODO: should return empty
-			want: querySuggestions[2:],
+			want:  []prompt.Suggest{},
+		},
+		{
+			desc:  "middle of order by",
+			input: `QUERY user ORD`,
+			want:  []prompt.Suggest{orderBySuggestion},
+		},
+		{
+			desc:  "middle of order by after where",
+			input: `QUERY user SELECT name WHERE name = "Doe" ORD`,
+			want:  []prompt.Suggest{orderBySuggestion},
 		},
 		{
 			desc:  "query with order by",
@@ -62,8 +96,33 @@ func TestCompleter(t *testing.T) {
 		},
 		{
 			desc:  "query with order by and field",
-			input: `QUERY user ORDER BY name`,
-			want:  querySuggestions[3:],
+			input: `QUERY user ORDER BY name `,
+			want:  []prompt.Suggest{},
+		},
+		{
+			desc:  "middle of asc",
+			input: `QUERY user ORDER BY name A`,
+			want:  []prompt.Suggest{ascSuggestion},
+		},
+		{
+			desc:  "middle of desc",
+			input: `QUERY user ORDER BY name D`,
+			want:  []prompt.Suggest{descSuggestion},
+		},
+		{
+			desc:  "middle of limit",
+			input: `QUERY user ORDER BY name LI`,
+			want:  []prompt.Suggest{limitSuggestion},
+		},
+		{
+			desc:  "middle of limit after ASC",
+			input: `QUERY user ORDER BY name ASC LI`,
+			want:  []prompt.Suggest{limitSuggestion},
+		},
+		{
+			desc:  "middle of limit after multiple order by",
+			input: `QUERY user ORDER BY name ASC, age DESC LI`,
+			want:  []prompt.Suggest{limitSuggestion},
 		},
 	}
 

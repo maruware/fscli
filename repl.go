@@ -62,8 +62,6 @@ func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 	}
 
 	text := d.TextBeforeCursor()
-	// trim inputting last word
-	text = strings.TrimSuffix(text, d.GetWordBeforeCursor())
 
 	c := NewCompleter(NewLexer(text))
 	suggestions, err := c.Parse()
@@ -71,7 +69,7 @@ func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}
 	}
 
-	return prompt.FilterHasPrefix(suggestions, d.GetWordBeforeCursor(), true)
+	return suggestions
 }
 
 func (r *Repl) Start() {

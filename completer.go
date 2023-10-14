@@ -4,17 +4,34 @@ import (
 	"github.com/c-bata/go-prompt"
 )
 
+var (
+	getSuggestion   = prompt.Suggest{Text: "GET", Description: "GET [docPath]"}
+	querySuggestion = prompt.Suggest{Text: "QUERY", Description: "QUERY [collection]"}
+)
+
 var rootSuggestions = []prompt.Suggest{
-	{Text: "GET", Description: "GET [docPath]"},
-	{Text: "QUERY", Description: "QUERY [collection]"},
+	getSuggestion,
+	querySuggestion,
 }
 
+var (
+	selectSuggestion  = prompt.Suggest{Text: "SELECT", Description: "SELECT [field...]"}
+	whereSuggestion   = prompt.Suggest{Text: "WHERE", Description: "WHERE [field] [operator] [value]"}
+	orderBySuggestion = prompt.Suggest{Text: "ORDER BY", Description: "ORDER BY [field] [ASC/DESC]"}
+	limitSuggestion   = prompt.Suggest{Text: "LIMIT", Description: "LIMIT [count]"}
+)
+
 var querySuggestions = []prompt.Suggest{
-	{Text: "SELECT", Description: "SELECT [field...]"},
-	{Text: "WHERE", Description: "WHERE [field] [operator] [value]"},
-	{Text: "ORDER BY", Description: "ORDER BY [field] [ASC/DESC]"},
-	{Text: "LIMIT", Description: "LIMIT [count]"},
+	selectSuggestion,
+	whereSuggestion,
+	orderBySuggestion,
+	limitSuggestion,
 }
+
+var (
+	ascSuggestion  = prompt.Suggest{Text: "ASC", Description: "ASC"}
+	descSuggestion = prompt.Suggest{Text: "DESC", Description: "DESC"}
+)
 
 type Completer struct {
 	l         *Lexer
@@ -39,7 +56,11 @@ func (c *Completer) Parse() ([]prompt.Suggest, error) {
 	if c.curTokenIs(GET) {
 		return []prompt.Suggest{}, nil
 	}
-	return rootSuggestions, nil
+
+	if c.curTokenIs(IDENT) {
+		return prompt.FilterHasPrefix(rootSuggestions, c.curToken.Literal, true), nil
+	}
+	return []prompt.Suggest{}, nil
 }
 
 func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
@@ -52,7 +73,12 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 	c.nextToken()
 
 	if c.curTokenIs(EOF) {
-		return querySuggestions, nil
+		return []prompt.Suggest{}, nil
+	}
+
+	// select / where / order by / limit
+	if c.curTokenIs(IDENT) {
+		return prompt.FilterHasPrefix(querySuggestions, c.curToken.Literal, true), nil
 	}
 
 	if c.curTokenIs(SELECT) {
@@ -62,14 +88,22 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 			return []prompt.Suggest{}, nil
 		}
 
-		for !c.curTokenIs(EOF) && !c.curTokenIs(WHERE) {
-			c.nextToken()
+		for !c.curTokenIs(EOF) {
+			if c.curTokenIs(COMMA) {
+				c.nextToken()
+			} else {
+				c.nextToken()
+				break
+			}
 		}
 	}
 
 	if c.curTokenIs(EOF) {
-		// without select
-		return querySuggestions[1:], nil
+		return []prompt.Suggest{}, nil
+	}
+	// where / order by / limit
+	if c.curTokenIs(IDENT) {
+		return prompt.FilterHasPrefix(querySuggestions[1:], c.curToken.Literal, true), nil
 	}
 
 	if c.curTokenIs(WHERE) {
@@ -79,14 +113,34 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 			return []prompt.Suggest{}, nil
 		}
 
-		for !c.curTokenIs(EOF) && !c.curTokenIs(ORDER) {
-			c.nextToken()
+		c.nextToken()
+		for !c.curTokenIs(EOF) {
+			if c.curTokenIs(EQ) || c.curTokenIs(NOT_EQ) {
+				c.nextToken()
+				// value
+
+				if c.curTokenIs(EOF) {
+					return []prompt.Suggest{}, nil
+				}
+				c.nextToken()
+			} else if c.curTokenIs(AND) {
+				c.nextToken()
+				if c.curTokenIs(EOF) {
+					return []prompt.Suggest{}, nil
+				}
+				c.nextToken()
+			} else {
+				break
+			}
 		}
 	}
 
 	if c.curTokenIs(EOF) {
-		// without where
-		return querySuggestions[2:], nil
+		return []prompt.Suggest{}, nil
+	}
+	// order by / limit
+	if c.curTokenIs(IDENT) {
+		return prompt.FilterHasPrefix(querySuggestions[2:], c.curToken.Literal, true), nil
 	}
 
 	if c.curTokenIs(ORDER) {
@@ -103,14 +157,30 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 			return []prompt.Suggest{}, nil
 		}
 
-		for !c.curTokenIs(EOF) && !c.curTokenIs(LIMIT) {
-			c.nextToken()
+		c.nextToken()
+
+		for !c.curTokenIs(EOF) {
+			if c.curTokenIs(ASC) || c.curTokenIs(DESC) {
+				c.nextToken()
+			}
+			if c.curTokenIs(COMMA) {
+				c.nextToken()
+				if c.curTokenIs(EOF) {
+					return []prompt.Suggest{}, nil
+				}
+				c.nextToken()
+			} else {
+				break
+			}
 		}
 	}
 
 	if c.curTokenIs(EOF) {
-		// without order by
-		return querySuggestions[3:], nil
+		return []prompt.Suggest{}, nil
+	}
+	// asc/ desc / limit
+	if c.curTokenIs(IDENT) {
+		return prompt.FilterHasPrefix([]prompt.Suggest{ascSuggestion, descSuggestion, limitSuggestion}, c.curToken.Literal, true), nil
 	}
 
 	return []prompt.Suggest{}, nil

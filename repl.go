@@ -69,10 +69,17 @@ func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 		if collectionsCache, ok := r.collectionsCache[baseDoc]; ok {
 			return collectionsCache, nil
 		}
-		collections, err := findAllCollections(r.ctx, r.fs, baseDoc)
-		if err != nil {
-			return nil, err
-		}
+
+		ch := make(chan []string)
+		go func() {
+			collections, err := findAllCollections(r.ctx, r.fs, baseDoc)
+			if err != nil {
+				ch <- []string{}
+				return
+			}
+			ch <- collections
+		}()
+		collections := <-ch
 		r.collectionsCache[baseDoc] = collections
 		return collections, nil
 	}

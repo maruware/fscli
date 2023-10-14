@@ -63,7 +63,11 @@ func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 
 	text := d.TextBeforeCursor()
 
-	c := NewCompleter(NewLexer(text))
+	findCollections := func(baseDoc string) ([]string, error) {
+		return findAllCollections(r.ctx, r.fs, baseDoc)
+	}
+
+	c := NewCompleter(NewLexer(text), findCollections)
 	suggestions, err := c.Parse()
 	if err != nil {
 		return []prompt.Suggest{}

@@ -1,6 +1,9 @@
 package fscli
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/c-bata/go-prompt"
 )
 
@@ -33,14 +36,25 @@ var (
 	descSuggestion = prompt.Suggest{Text: "DESC", Description: "DESC"}
 )
 
-type Completer struct {
-	l         *Lexer
-	curToken  Token
-	peekToken Token
+func newCollectionSuggestion(baseDoc string, name string) prompt.Suggest {
+	var t string
+	if baseDoc == "" {
+		t = name
+	} else {
+		t = fmt.Sprintf("%s/%s", baseDoc, name)
+	}
+	return prompt.Suggest{Text: t, Description: name}
 }
 
-func NewCompleter(l *Lexer) *Completer {
-	c := &Completer{l: l}
+type Completer struct {
+	l               *Lexer
+	curToken        Token
+	peekToken       Token
+	findCollections func(baseDoc string) ([]string, error)
+}
+
+func NewCompleter(l *Lexer, findCollections func(baseDoc string) ([]string, error)) *Completer {
+	c := &Completer{l: l, findCollections: findCollections}
 
 	// Set both curToken and peekToken
 	c.nextToken()
@@ -69,6 +83,23 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 	}
 
 	// collection := c.curToken.Literal
+	if c.peekTokenIs(EOF) {
+		lastSlash := strings.LastIndex(c.curToken.Literal, "/")
+		baseDoc := ""
+		if lastSlash != -1 {
+			baseDoc = c.curToken.Literal[:lastSlash]
+		}
+		collections, err := c.findCollections(baseDoc)
+		if err != nil {
+			return []prompt.Suggest{}, nil
+		}
+		suggestions := make([]prompt.Suggest, 0, len(collections))
+		for _, col := range collections {
+			suggestions = append(suggestions, newCollectionSuggestion(baseDoc, col))
+		}
+
+		return prompt.FilterHasPrefix(suggestions, c.curToken.Literal, false), nil
+	}
 
 	c.nextToken()
 

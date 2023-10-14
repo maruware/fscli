@@ -41,7 +41,12 @@ func TestCompleter(t *testing.T) {
 		{
 			desc:  "middle of query with collection",
 			input: `QUERY us`,
-			want:  []prompt.Suggest{},
+			want:  []prompt.Suggest{newCollectionSuggestion("", "user")},
+		},
+		{
+			desc:  "middle of query with sub collection",
+			input: `QUERY user/1/p`,
+			want:  []prompt.Suggest{newCollectionSuggestion("user/1", "posts")},
 		},
 		{
 			desc:  "middle of query with select",
@@ -126,10 +131,20 @@ func TestCompleter(t *testing.T) {
 		},
 	}
 
+	findCollections := func(baseDoc string) ([]string, error) {
+		if baseDoc == "" {
+			return []string{"user", "group"}, nil
+		}
+		if baseDoc == "user/1" {
+			return []string{"posts"}, nil
+		}
+		return []string{}, nil
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			l := NewLexer(tt.input)
-			c := NewCompleter(l)
+			c := NewCompleter(l, findCollections)
 			got, err := c.Parse()
 			if err != nil {
 				t.Fatal(err)

@@ -126,11 +126,7 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 	var pager *exec.Cmd
 	if r.enabledPager {
 		var buffer bytes.Buffer
-		cmd := "less"
-		if env := os.Getenv("PAGER"); env != "" {
-			cmd = env
-		}
-		pager = exec.Command(cmd)
+		pager = exec.Command(getPagerCmd())
 		pager.Stdin = &buffer
 		pager.Stdout = r.out
 		out = &buffer
@@ -196,8 +192,17 @@ func (r *Repl) processLine(line string) {
 			fmt.Fprintf(r.out, "error: %s\n", err)
 			return
 		}
+
+		var out io.Writer = r.out
+		if r.enabledPager {
+			var buffer bytes.Buffer
+			pager := exec.Command(getPagerCmd())
+			pager.Stdin = &buffer
+			pager.Stdout = r.out
+			out = &buffer
+		}
 		for _, col := range cols {
-			fmt.Fprintf(r.out, "%s\n", col)
+			fmt.Fprintf(out, "%s\n", col)
 		}
 	}
 
@@ -306,4 +311,11 @@ func (r *Repl) readHistory() []string {
 		return strings.Split(string(data), "\n")
 	}
 	return []string{}
+}
+
+func getPagerCmd() string {
+	if env := os.Getenv("PAGER"); env != "" {
+		return env
+	}
+	return "less"
 }

@@ -66,21 +66,10 @@ func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 	text := d.TextBeforeCursor()
 
 	findCollections := func(baseDoc string) ([]string, error) {
-		if collectionsCache, ok := r.collectionsCache[baseDoc]; ok {
-			return collectionsCache, nil
+		fn := func(baseDoc string) ([]string, error) {
+			return findAllCollections(r.ctx, r.fs, baseDoc)
 		}
-
-		ch := make(chan []string)
-		go func() {
-			collections, err := findAllCollections(r.ctx, r.fs, baseDoc)
-			if err != nil {
-				ch <- []string{}
-				return
-			}
-			ch <- collections
-		}()
-		collections := <-ch
-		r.collectionsCache[baseDoc] = collections
+		collections := getCollections(baseDoc, fn)
 		return collections, nil
 	}
 

@@ -34,24 +34,26 @@ const (
 )
 
 type Repl struct {
-	ctx          context.Context
-	fs           *firestore.Client
-	in           io.Reader
-	out          io.Writer
-	outputMode   OutputMode
-	exe          *Executor
-	enabledPager bool
+	ctx              context.Context
+	fs               *firestore.Client
+	in               io.Reader
+	out              io.Writer
+	outputMode       OutputMode
+	exe              *Executor
+	enabledPager     bool
+	collectionsCache map[string][]string
 }
 
 func NewRepl(ctx context.Context, fs *firestore.Client, in io.Reader, out io.Writer, outputMode OutputMode) *Repl {
 	return &Repl{
-		ctx:          ctx,
-		fs:           fs,
-		in:           in,
-		out:          out,
-		outputMode:   outputMode,
-		exe:          NewExecutor(ctx, fs),
-		enabledPager: false,
+		ctx:              ctx,
+		fs:               fs,
+		in:               in,
+		out:              out,
+		outputMode:       outputMode,
+		exe:              NewExecutor(ctx, fs),
+		enabledPager:     false,
+		collectionsCache: map[string][]string{},
 	}
 }
 
@@ -64,7 +66,15 @@ func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 	text := d.TextBeforeCursor()
 
 	findCollections := func(baseDoc string) ([]string, error) {
-		return findAllCollections(r.ctx, r.fs, baseDoc)
+		if collectionsCache, ok := r.collectionsCache[baseDoc]; ok {
+			return collectionsCache, nil
+		}
+		collections, err := findAllCollections(r.ctx, r.fs, baseDoc)
+		if err != nil {
+			return nil, err
+		}
+		r.collectionsCache[baseDoc] = collections
+		return collections, nil
 	}
 
 	c := NewCompleter(NewLexer(text), findCollections)

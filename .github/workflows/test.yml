@@ -20,6 +20,11 @@ jobs:
       - name: Build
         run: go build -v ./...
 
+      - uses: dominikh/staticcheck-action@v1.2.0
+        with:
+          version: 2023.1.6
+          install-go: false
+
       - name: up firestore
         run: docker compose up -d --wait
         working-directory: ./local

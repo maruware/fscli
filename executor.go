@@ -3,6 +3,7 @@ package fscli
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"cloud.google.com/go/firestore"
@@ -70,29 +71,19 @@ func (exe *Executor) ExecuteGet(ctx context.Context, op *GetOperation) (*firesto
 }
 
 func (exe *Executor) ExecuteListCollections(ctx context.Context, cmd *MetacommandListCollections) ([]string, error) {
-	parts := strings.Split(cmd.baseDoc, "/")
-
-	docParts := make([][2]string, 0)
-	for i, part := range parts {
-		if i%2 == 1 {
-			docParts = append(docParts, [2]string{parts[i-1], part})
-		}
-	}
-
-	var docBase *firestore.DocumentRef
-	for _, docPart := range docParts {
-		if docBase == nil {
-			docBase = exe.fs.Collection(docPart[0]).Doc(docPart[1])
-		} else {
-			docBase = docBase.Collection(docPart[0]).Doc(docPart[1])
-		}
-	}
-
-	if docBase == nil {
+	if cmd.baseDoc == "" {
 		return allCollections(exe.fs.Collections(ctx)), nil
 	}
 
-	return allCollections(docBase.Collections(ctx)), nil
+	lastSlash := strings.LastIndex(cmd.baseDoc, "/")
+	if lastSlash == -1 {
+		return nil, fmt.Errorf("invalid path: %s", cmd.baseDoc)
+	}
+
+	collection := cmd.baseDoc[:lastSlash]
+	docId := cmd.baseDoc[lastSlash+1:]
+
+	return allCollections(exe.fs.Collection(collection).Doc(docId).Collections(ctx)), nil
 }
 
 func allCollections(itr *firestore.CollectionIterator) []string {

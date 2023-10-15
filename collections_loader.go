@@ -1,15 +1,19 @@
 package fscli
 
 import (
+	"log"
 	"sync"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
 )
 
 var (
 	baseDocToFetched     *sync.Map
 	baseDocToCollections *sync.Map
 )
+
+const PAGE_SIZE = 100
 
 func init() {
 	baseDocToFetched = new(sync.Map)
@@ -42,15 +46,19 @@ func fetchCollections(baseDoc string, getCollectionsIterator func(baseDoc string
 	}
 
 	collections := make([]string, 0)
+	p := iterator.NewPager(itr, PAGE_SIZE, "")
 	for {
-		col, err := itr.Next()
+		var cols []*firestore.CollectionRef
+		pageToken, err := p.NextPage(&cols)
 		if err != nil {
-			break
+			log.Fatal(err)
+			return
 		}
-		collections = append(collections, col.ID)
+		collections = append(collections, getCollectionIds(cols)...)
+		baseDocToCollections.Store(baseDoc, collections)
 
-		if len(collections)%50 == 0 {
-			baseDocToCollections.Store(baseDoc, collections)
+		if pageToken == "" {
+			break
 		}
 	}
 	baseDocToCollections.Store(baseDoc, collections)

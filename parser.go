@@ -176,6 +176,14 @@ func (p *Parser) parseFilter() (Filter, error) {
 		operator = OPERATOR_EQ
 	} else if p.curTokenIs(NOT_EQ) {
 		operator = OPERATOR_NOT_EQ
+	} else if p.curTokenIs(GT) {
+		operator = OPERATOR_GT
+	} else if p.curTokenIs(GTE) {
+		operator = OPERATOR_GTE
+	} else if p.curTokenIs(LT) {
+		operator = OPERATOR_LT
+	} else if p.curTokenIs(LTE) {
+		operator = OPERATOR_LTE
 	} else if p.curTokenIs(IN) {
 		operator = OPERATOR_IN
 	} else if p.curTokenIs(ARRAY_CONTAINS) {

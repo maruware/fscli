@@ -153,6 +153,48 @@ func TestQuery(t *testing.T) {
 			},
 		},
 		{
+			desc: "query with greater than",
+			input: &QueryOperation{collection: "users", filters: []Filter{
+				NewIntFilter("age", ">", 22),
+			}},
+			want: []map[string]any{
+				{"name": "user-3", "age": int64(23), "nicknames": []any{"u-3-1", "u-3-2"}},
+				{"name": "user-4", "age": int64(24), "nicknames": []any{"u-4-1", "u-4-2"}},
+			},
+		},
+		{
+			desc: "query with greater than or equal",
+			input: &QueryOperation{collection: "users", filters: []Filter{
+				NewIntFilter("age", ">=", 22),
+			}},
+			want: []map[string]any{
+				{"name": "user-2", "age": int64(22), "nicknames": []any{"u-2-1", "u-2-2"}},
+				{"name": "user-3", "age": int64(23), "nicknames": []any{"u-3-1", "u-3-2"}},
+				{"name": "user-4", "age": int64(24), "nicknames": []any{"u-4-1", "u-4-2"}},
+			},
+		},
+		{
+			desc: "query with less than",
+			input: &QueryOperation{collection: "users", filters: []Filter{
+				NewIntFilter("age", "<", 22),
+			}},
+			want: []map[string]any{
+				{"name": "user-0", "age": int64(20), "nicknames": []any{"u-0-1", "u-0-2"}},
+				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
+			},
+		},
+		{
+			desc: "query with less than or equal",
+			input: &QueryOperation{collection: "users", filters: []Filter{
+				NewIntFilter("age", "<=", 22),
+			}},
+			want: []map[string]any{
+				{"name": "user-0", "age": int64(20), "nicknames": []any{"u-0-1", "u-0-2"}},
+				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
+				{"name": "user-2", "age": int64(22), "nicknames": []any{"u-2-1", "u-2-2"}},
+			},
+		},
+		{
 			desc: "query with and",
 			input: &QueryOperation{collection: "users", filters: []Filter{
 				NewStringFilter("name", "==", "user-1"),

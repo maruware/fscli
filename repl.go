@@ -66,8 +66,8 @@ func (r *Repl) completer(d prompt.Document) []prompt.Suggest {
 	text := d.TextBeforeCursor()
 
 	findCollections := func(baseDoc string) ([]string, error) {
-		fn := func(baseDoc string) ([]string, error) {
-			return findAllCollections(r.ctx, r.fs, baseDoc)
+		fn := func(baseDoc string) (*firestore.CollectionIterator, error) {
+			return getCollectionsIterator(r.ctx, r.fs, baseDoc)
 		}
 		collections := getCollections(baseDoc, fn)
 		return collections, nil

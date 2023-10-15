@@ -13,7 +13,7 @@ func findAllCollections(ctx context.Context, fs *firestore.Client, baseDoc strin
 	if err != nil {
 		return nil, err
 	}
-	return iterateAllCollections(itr), nil
+	return iterateAllCollections(itr)
 }
 
 func getCollectionsIterator(ctx context.Context, fs *firestore.Client, baseDoc string) (*firestore.CollectionIterator, error) {
@@ -32,14 +32,18 @@ func getCollectionsIterator(ctx context.Context, fs *firestore.Client, baseDoc s
 	return fs.Collection(collection).Doc(docId).Collections(ctx), nil
 }
 
-func iterateAllCollections(itr *firestore.CollectionIterator) []string {
-	cols := make([]string, 0)
-	for {
-		col, err := itr.Next()
-		if err != nil {
-			break
-		}
-		cols = append(cols, col.ID)
+func iterateAllCollections(itr *firestore.CollectionIterator) ([]string, error) {
+	cols, err := itr.GetAll()
+	if err != nil {
+		return nil, err
 	}
-	return cols
+	return getCollectionIds(cols), nil
+}
+
+func getCollectionIds(cols []*firestore.CollectionRef) []string {
+	ids := make([]string, 0)
+	for _, col := range cols {
+		ids = append(ids, col.ID)
+	}
+	return ids
 }

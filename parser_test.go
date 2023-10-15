@@ -40,6 +40,42 @@ func TestParse(t *testing.T) {
 			}},
 		},
 		{
+			desc:  "query with not equal",
+			input: `QUERY user WHERE age != 20`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewIntFilter("age", OPERATOR_NOT_EQ, 20),
+			}},
+		},
+		{
+			desc:  "query with greater than",
+			input: `QUERY user WHERE age > 20`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewIntFilter("age", OPERATOR_GT, 20),
+			}},
+		},
+		{
+			desc:  "query with greater than or equal",
+			input: `QUERY user WHERE age >= 20`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewIntFilter("age", OPERATOR_GTE, 20),
+			}},
+		},
+		{
+
+			desc:  "query with less than",
+			input: `QUERY user WHERE age < 20`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewIntFilter("age", OPERATOR_LT, 20),
+			}},
+		},
+		{
+			desc:  "query with less than or equal",
+			input: `QUERY user WHERE age <= 20`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewIntFilter("age", OPERATOR_LTE, 20),
+			}},
+		},
+		{
 			desc:  "query with IN",
 			input: `QUERY user WHERE age IN [20, 21, 22]`,
 			want: &QueryOperation{collection: "user", filters: []Filter{

@@ -2,6 +2,10 @@
 
 A cli tool for firestore
 
+## Demo
+
+![fscli-demo](https://github.com/maruware/fscli/assets/1129887/887bbc4c-4f66-40a5-9211-256899abc067)
+
 ## Prepare
 
 ```sh

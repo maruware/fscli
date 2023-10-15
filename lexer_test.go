@@ -141,6 +141,54 @@ func TestLexer(t *testing.T) {
 			},
 		},
 		{
+			desc:  "query with GT",
+			input: `QUERY user WHERE age > 20`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "age"},
+				{Type: GT, Literal: ">"},
+				{Type: INT, Literal: "20"},
+			},
+		},
+		{
+			desc:  "query with GTE",
+			input: `QUERY user WHERE age >= 20`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "age"},
+				{Type: GTE, Literal: ">="},
+				{Type: INT, Literal: "20"},
+			},
+		},
+		{
+			desc:  "query with LT",
+			input: `QUERY user WHERE age < 20`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "age"},
+				{Type: LT, Literal: "<"},
+				{Type: INT, Literal: "20"},
+			},
+		},
+		{
+			desc:  "query with LTE",
+			input: `QUERY user WHERE age <= 20`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "age"},
+				{Type: LTE, Literal: "<="},
+				{Type: INT, Literal: "20"},
+			},
+		},
+		{
 			desc:  "query with array-contains",
 			input: `QUERY user WHERE nicknames ARRAY_CONTAINS "Doe"`,
 			want: []Token{

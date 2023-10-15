@@ -13,6 +13,10 @@ const (
 	WHERE              = "WHERE"
 	EQ                 = "="
 	NOT_EQ             = "!="
+	GT                 = ">"
+	GTE                = ">="
+	LT                 = "<"
+	LTE                = "<="
 	IN                 = "IN"
 	ARRAY_CONTAINS     = "ARRAY_CONTAINS"
 	ARRAY_CONTAINS_ANY = "ARRAY_CONTAINS_ANY"
@@ -62,6 +66,10 @@ var keywards = map[string]TokenType{
 var operators = map[string]TokenType{
 	"==":                 EQ,
 	"!=":                 NOT_EQ,
+	">":                  GT,
+	">=":                 GTE,
+	"<":                  LT,
+	"<=":                 LTE,
 	"IN":                 IN,
 	"ARRAY_CONTAINS":     ARRAY_CONTAINS,
 	"ARRAY_CONTAINS_ANY": ARRAY_CONTAINS_ANY,

@@ -27,6 +27,10 @@ type Operator string
 const (
 	OPERATOR_EQ                 Operator = "=="
 	OPERATOR_NOT_EQ             Operator = "!="
+	OPERATOR_GT                 Operator = ">"
+	OPERATOR_GTE                Operator = ">="
+	OPERATOR_LT                 Operator = "<"
+	OPERATOR_LTE                Operator = "<="
 	OPERATOR_IN                 Operator = "in"
 	OPERATOR_ARRAY_CONTAINS     Operator = "array-contains"
 	OPERATOR_ARRAY_CONTAINS_ANY Operator = "array-contains-any"

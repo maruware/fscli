@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -26,7 +25,7 @@ func main() {
 		},
 		Action: func(cCtx *cli.Context) error {
 			projectId := cCtx.String("project-id")
-			fmt.Printf("project ID: %s\n", projectId)
+			// fmt.Printf("project ID: %s\n", projectId)
 
 			fs, err := firestore.NewClient(cCtx.Context, projectId)
 			if err != nil {

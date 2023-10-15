@@ -6,6 +6,16 @@ A cli tool for firestore
 
 ![fscli-demo](https://github.com/maruware/fscli/assets/1129887/887bbc4c-4f66-40a5-9211-256899abc067)
 
+## Installation
+
+Download binary from [Releases](https://github.com/maruware/fscli/releases)
+
+or
+
+```
+go install github.com/maruware/fscli/cmd/fscli@latest
+```
+
 ## Prepare
 
 ```sh

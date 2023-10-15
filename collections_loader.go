@@ -1,6 +1,10 @@
 package fscli
 
-import "sync"
+import (
+	"sync"
+
+	"cloud.google.com/go/firestore"
+)
 
 var (
 	baseDocToFetched     *sync.Map
@@ -25,22 +29,35 @@ func unmarkCollectionsFetched(baseDoc string) {
 	baseDocToFetched.Delete(baseDoc)
 }
 
-func fetchCollections(baseDoc string, findAllCollections func(baseDoc string) ([]string, error)) {
+func fetchCollections(baseDoc string, getCollectionsIterator func(baseDoc string) (*firestore.CollectionIterator, error)) {
 	if !shouldFetchCollections(baseDoc) {
 		return
 	}
 
 	markCollectionsFetched(baseDoc)
-	collection, err := findAllCollections(baseDoc)
+	itr, err := getCollectionsIterator(baseDoc)
 	if err != nil {
 		unmarkCollectionsFetched(baseDoc)
 		return
 	}
-	baseDocToCollections.Store(baseDoc, collection)
+
+	collections := make([]string, 0)
+	for {
+		col, err := itr.Next()
+		if err != nil {
+			break
+		}
+		collections = append(collections, col.ID)
+
+		if len(collections)%50 == 0 {
+			baseDocToCollections.Store(baseDoc, collections)
+		}
+	}
+	baseDocToCollections.Store(baseDoc, collections)
 }
 
-func getCollections(baseDoc string, findAllCollections func(baseDoc string) ([]string, error)) []string {
-	go fetchCollections(baseDoc, findAllCollections)
+func getCollections(baseDoc string, getCollectionsIterator func(baseDoc string) (*firestore.CollectionIterator, error)) []string {
+	go fetchCollections(baseDoc, getCollectionsIterator)
 	if collection, ok := baseDocToCollections.Load(baseDoc); !ok {
 		return []string{}
 	} else {

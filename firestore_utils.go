@@ -9,8 +9,16 @@ import (
 )
 
 func findAllCollections(ctx context.Context, fs *firestore.Client, baseDoc string) ([]string, error) {
+	itr, err := getCollectionsIterator(ctx, fs, baseDoc)
+	if err != nil {
+		return nil, err
+	}
+	return iterateAllCollections(itr), nil
+}
+
+func getCollectionsIterator(ctx context.Context, fs *firestore.Client, baseDoc string) (*firestore.CollectionIterator, error) {
 	if baseDoc == "" {
-		return iterateAllCollections(fs.Collections(ctx)), nil
+		return fs.Collections(ctx), nil
 	}
 
 	lastSlash := strings.LastIndex(baseDoc, "/")
@@ -21,7 +29,7 @@ func findAllCollections(ctx context.Context, fs *firestore.Client, baseDoc strin
 	collection := baseDoc[:lastSlash]
 	docId := baseDoc[lastSlash+1:]
 
-	return iterateAllCollections(fs.Collection(collection).Doc(docId).Collections(ctx)), nil
+	return fs.Collection(collection).Doc(docId).Collections(ctx), nil
 }
 
 func iterateAllCollections(itr *firestore.CollectionIterator) []string {

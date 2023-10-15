@@ -146,7 +146,7 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 
 		c.nextToken()
 		for !c.curTokenIs(EOF) {
-			if c.curTokenIs(EQ) || c.curTokenIs(NOT_EQ) {
+			if c.curTokenIsOperator() {
 				c.nextToken()
 				// value
 
@@ -225,6 +225,19 @@ func (c *Completer) nextToken() {
 func (c *Completer) curTokenIs(t TokenType) bool {
 	return c.curToken.Type == t
 }
+
+func (c *Completer) curTokenIsOperator() bool {
+	return c.curTokenIs(EQ) ||
+		c.curTokenIs(NOT_EQ) ||
+		c.curTokenIs(GT) ||
+		c.curTokenIs(GTE) ||
+		c.curTokenIs(LT) ||
+		c.curTokenIs(LTE) ||
+		c.curTokenIs(IN) ||
+		c.curTokenIs(ARRAY_CONTAINS) ||
+		c.curTokenIs(ARRAY_CONTAINS_ANY)
+}
+
 func (c *Completer) peekTokenIs(t TokenType) bool {
 	return c.peekToken.Type == t
 }

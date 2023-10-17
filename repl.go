@@ -118,15 +118,8 @@ func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
 }
 
 func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
-	var out io.Writer = r.out
-	var pager *exec.Cmd
-	if r.enabledPager {
-		var buffer bytes.Buffer
-		pager = exec.Command(getPagerCmd())
-		pager.Stdin = &buffer
-		pager.Stdout = r.out
-		out = &buffer
-	}
+	out, render := r.pagerableOut()
+	defer render()
 
 	// collect keys
 	keys := []string{}
@@ -152,12 +145,6 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 		table.Append(row)
 	}
 	table.Render()
-
-	if pager != nil {
-		if err := pager.Run(); err != nil {
-			fmt.Fprintf(r.out, "error: %s\n", err)
-		}
-	}
 }
 
 func (r *Repl) processLine(line string) {
@@ -182,6 +169,11 @@ func (r *Repl) processLine(line string) {
 		return
 	}
 
+	if op, ok := result.(*MetacommandPager); ok {
+		r.enabledPager = op.on
+		return
+	}
+
 	if op, ok := result.(*MetacommandListCollections); ok {
 		cols, err := r.exe.ExecuteListCollections(r.ctx, op)
 		if err != nil {
@@ -189,16 +181,12 @@ func (r *Repl) processLine(line string) {
 			return
 		}
 
-		var out io.Writer = r.out
-		if r.enabledPager {
-			var buffer bytes.Buffer
-			pager := exec.Command(getPagerCmd())
-			pager.Stdin = &buffer
-			pager.Stdout = r.out
-			out = &buffer
-		}
+		out, render := r.pagerableOut()
 		for _, col := range cols {
 			fmt.Fprintf(out, "%s\n", col)
+		}
+		if err := render(); err != nil {
+			fmt.Fprintf(r.out, "error: %s\n", err)
 		}
 	}
 
@@ -307,6 +295,31 @@ func (r *Repl) readHistory() []string {
 		return strings.Split(string(data), "\n")
 	}
 	return []string{}
+}
+
+func (r *Repl) pagerableOut() (io.Writer, func() error) {
+	var buffer bytes.Buffer
+
+	var out io.Writer = &buffer
+	var pager *exec.Cmd
+	if r.enabledPager {
+		pager = exec.Command(getPagerCmd())
+		pager.Stdin = &buffer
+		pager.Stdout = r.out
+	}
+
+	if pager != nil {
+		return out, func() error {
+			if err := pager.Run(); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	return out, func() error {
+		fmt.Fprint(r.out, buffer.String())
+		return nil
+	}
 }
 
 func getPagerCmd() string {

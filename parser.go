@@ -29,11 +29,6 @@ func NewParser(l *Lexer) *Parser {
 	return p
 }
 
-func (p *Parser) nextToken() {
-	p.curToken = p.peekToken
-	p.peekToken = p.l.NextToken()
-}
-
 func (p *Parser) Parse() (ParseResult, error) {
 	if p.curTokenIsMetacommand() {
 		return p.parseMetacommand()
@@ -312,6 +307,11 @@ func (p *Parser) parseMetacommand() (Metacommand, error) {
 
 func (p *Parser) Errors() []string {
 	return p.errors
+}
+
+func (p *Parser) nextToken() {
+	p.curToken = p.peekToken
+	p.peekToken = p.l.NextToken()
 }
 
 func (p *Parser) curTokenIsMetacommand() bool {

@@ -10,11 +10,13 @@ import (
 var (
 	getSuggestion   = prompt.Suggest{Text: "GET", Description: "GET [docPath]"}
 	querySuggestion = prompt.Suggest{Text: "QUERY", Description: "QUERY [collection]"}
+	countSuggestion = prompt.Suggest{Text: "COUNT", Description: "COUNT [collection]"}
 )
 
 var rootSuggestions = []prompt.Suggest{
 	getSuggestion,
 	querySuggestion,
+	countSuggestion,
 }
 
 var (
@@ -69,6 +71,9 @@ func (c *Completer) Parse() ([]prompt.Suggest, error) {
 	}
 	if c.curTokenIs(GET) {
 		return c.parseGetOperation()
+	}
+	if c.curTokenIs(COUNT) {
+		return c.parseCountOperation()
 	}
 
 	if c.curTokenIs(IDENT) {
@@ -251,6 +256,83 @@ func (c *Completer) parseGetOperation() ([]prompt.Suggest, error) {
 		}
 
 		return prompt.FilterHasPrefix(suggestions, c.curToken.Literal, false), nil
+	}
+
+	return []prompt.Suggest{}, nil
+}
+
+func (c *Completer) parseCountOperation() ([]prompt.Suggest, error) {
+	if !c.expectPeek(IDENT) {
+		return []prompt.Suggest{}, nil
+	}
+
+	if c.peekTokenIs(EOF) {
+		collection := normalizeFirestorePath(c.curToken.Literal)
+		parts := strings.Split(collection, "/")
+		if len(parts)%2 == 0 {
+			return []prompt.Suggest{}, nil
+		}
+
+		var baseDoc string
+		if len(parts) == 1 {
+			baseDoc = ""
+		} else {
+			baseDoc = strings.Join(parts[:len(parts)-1], "/")
+		}
+		collections, err := c.findCollections(baseDoc)
+		if err != nil {
+			return []prompt.Suggest{}, nil
+		}
+		suggestions := make([]prompt.Suggest, 0, len(collections))
+		for _, col := range collections {
+			suggestions = append(suggestions, newCollectionSuggestion(baseDoc, col))
+		}
+
+		return prompt.FilterHasPrefix(suggestions, c.curToken.Literal, false), nil
+	}
+
+	c.nextToken()
+
+	if c.curTokenIs(EOF) {
+		return []prompt.Suggest{}, nil
+	}
+
+	// where
+	if c.curTokenIs(IDENT) {
+		return prompt.FilterHasPrefix([]prompt.Suggest{whereSuggestion}, c.curToken.Literal, true), nil
+	}
+
+	if c.curTokenIs(EOF) {
+		return []prompt.Suggest{}, nil
+	}
+
+	if c.curTokenIs(WHERE) {
+		c.nextToken()
+
+		if c.curTokenIs(EOF) {
+			return []prompt.Suggest{}, nil
+		}
+
+		c.nextToken()
+		for !c.curTokenIs(EOF) {
+			if c.curTokenIsOperator() {
+				c.nextToken()
+				// value
+
+				if c.curTokenIs(EOF) {
+					return []prompt.Suggest{}, nil
+				}
+				c.nextToken()
+			} else if c.curTokenIs(AND) {
+				c.nextToken()
+				if c.curTokenIs(EOF) {
+					return []prompt.Suggest{}, nil
+				}
+				c.nextToken()
+			} else {
+				break
+			}
+		}
 	}
 
 	return []prompt.Suggest{}, nil

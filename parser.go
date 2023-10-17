@@ -44,6 +44,9 @@ func (p *Parser) Parse() (ParseResult, error) {
 	if p.curTokenIs(GET) {
 		return p.parseGetOperation()
 	}
+	if p.curTokenIs(COUNT) {
+		return p.parseCountOperation()
+	}
 	return nil, fmt.Errorf("invalid operation: %s", p.curToken.Literal)
 }
 
@@ -91,6 +94,8 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 
 			if !p.expectPeek(AND) {
 				break
+			} else {
+				p.nextToken()
 			}
 		}
 
@@ -146,6 +151,50 @@ func (p *Parser) parseGetOperation() (*GetOperation, error) {
 	}
 	op.collection = path[:lastSlash]
 	op.docId = path[lastSlash+1:]
+	return op, nil
+}
+
+func (p *Parser) parseCountOperation() (*CountOperation, error) {
+	op := &CountOperation{}
+
+	if !p.expectPeek(IDENT) {
+		return nil, fmt.Errorf("invalid: expected collection but got %s", p.curToken.Literal)
+	}
+
+	op.collection = normalizeFirestorePath(p.curToken.Literal)
+
+	p.nextToken()
+
+	if p.curTokenIs(EOF) {
+		return op, nil
+	}
+
+	if p.curTokenIs(WHERE) {
+		p.nextToken()
+		for !p.curTokenIs(EOF) {
+
+			filter, err := p.parseFilter()
+			if err != nil {
+				p.errors = append(p.errors, err.Error())
+				return nil, err
+			}
+			if filter != nil {
+				op.filters = append(op.filters, filter)
+			}
+
+			if !p.expectPeek(AND) {
+				break
+			} else {
+				p.nextToken()
+			}
+		}
+
+		if p.curTokenIs(EOF) {
+			return op, nil
+		}
+		p.nextToken()
+	}
+
 	return op, nil
 }
 

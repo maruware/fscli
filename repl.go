@@ -176,6 +176,15 @@ func (r *Repl) processLine(line string) {
 			r.outputDocTable(doc)
 		}
 	}
+	if op, ok := result.(*CountOperation); ok {
+		count, err := r.exe.ExecuteCount(r.ctx, op)
+		if err != nil {
+			fmt.Fprintf(r.out, "error: %s\n", err)
+			return
+		}
+
+		fmt.Fprintf(r.out, "%d\n", count)
+	}
 }
 
 func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {

@@ -139,6 +139,36 @@ func TestCompleter(t *testing.T) {
 			input: `GET user/1/p`,
 			want:  []prompt.Suggest{newCollectionSuggestion("user/1", "posts")},
 		},
+		{
+			desc:  "middle of count",
+			input: `CO`,
+			want:  []prompt.Suggest{countSuggestion},
+		},
+		{
+			desc:  "count",
+			input: `COUNT`,
+			want:  []prompt.Suggest{},
+		},
+		{
+			desc:  "middle of count with collection",
+			input: `COUNT us`,
+			want:  []prompt.Suggest{newCollectionSuggestion("", "user")},
+		},
+		{
+			desc:  "middle of count with sub collection",
+			input: `COUNT user/1/p`,
+			want:  []prompt.Suggest{newCollectionSuggestion("user/1", "posts")},
+		},
+		{
+			desc:  "middle of count where",
+			input: `COUNT user WH`,
+			want:  []prompt.Suggest{whereSuggestion},
+		},
+		{
+			desc:  "count with where",
+			input: `COUNT user WHERE`,
+			want:  []prompt.Suggest{},
+		},
 	}
 
 	findCollections := func(baseDoc string) ([]string, error) {

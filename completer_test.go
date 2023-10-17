@@ -129,6 +129,16 @@ func TestCompleter(t *testing.T) {
 			input: `QUERY user ORDER BY name ASC, age DESC LI`,
 			want:  []prompt.Suggest{limitSuggestion},
 		},
+		{
+			desc:  "middle of get with collection",
+			input: `GET us`,
+			want:  []prompt.Suggest{newCollectionSuggestion("", "user")},
+		},
+		{
+			desc:  "middle of get with sub collection",
+			input: `GET user/1/p`,
+			want:  []prompt.Suggest{newCollectionSuggestion("user/1", "posts")},
+		},
 	}
 
 	findCollections := func(baseDoc string) ([]string, error) {

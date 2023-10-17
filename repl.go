@@ -107,46 +107,6 @@ func (r *Repl) Start() {
 	p.Run()
 }
 
-func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
-	fmt.Fprintf(r.out, "ID: %s\n", doc.Ref.ID)
-	j, err := json.Marshal(doc.Data())
-	if err != nil {
-		fmt.Fprintf(r.out, "invalid data: %s\n", err)
-		return
-	}
-	fmt.Fprintf(r.out, "Data: %s\n", j)
-}
-
-func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
-	out, render := r.pagerableOut()
-	defer render()
-
-	// collect keys
-	keys := []string{}
-	for _, doc := range docs {
-		for k := range doc.Data() {
-			if !slices.Contains(keys, k) {
-				keys = append(keys, k)
-			}
-		}
-	}
-	slices.Sort(keys)
-
-	table := tablewriter.NewWriter(out)
-	table.SetAutoFormatHeaders(false)
-	table.SetHeader(append([]string{"ID"}, keys...))
-
-	for _, doc := range docs {
-		row := []string{doc.Ref.ID}
-		for _, k := range keys {
-			val, ok := doc.Data()[k]
-			row = append(row, r.toTableCell(val, ok))
-		}
-		table.Append(row)
-	}
-	table.Render()
-}
-
 func (r *Repl) processLine(line string) {
 	if strings.TrimSpace(line) == "" {
 		return
@@ -198,10 +158,7 @@ func (r *Repl) processLine(line string) {
 		}
 
 		if r.outputMode == OutputModeJSON {
-			for _, doc := range docs {
-				r.outputDocJSON(doc)
-				fmt.Fprintln(r.out, LongLine)
-			}
+			r.oututDocsJSON(docs)
 		} else if r.outputMode == OutputModeTable {
 			r.outputDocsTable(docs)
 		}
@@ -219,6 +176,36 @@ func (r *Repl) processLine(line string) {
 			r.outputDocTable(doc)
 		}
 	}
+}
+
+func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
+	out, render := r.pagerableOut()
+	defer render()
+
+	// collect keys
+	keys := []string{}
+	for _, doc := range docs {
+		for k := range doc.Data() {
+			if !slices.Contains(keys, k) {
+				keys = append(keys, k)
+			}
+		}
+	}
+	slices.Sort(keys)
+
+	table := tablewriter.NewWriter(out)
+	table.SetAutoFormatHeaders(false)
+	table.SetHeader(append([]string{"ID"}, keys...))
+
+	for _, doc := range docs {
+		row := []string{doc.Ref.ID}
+		for _, k := range keys {
+			val, ok := doc.Data()[k]
+			row = append(row, r.toTableCell(val, ok))
+		}
+		table.Append(row)
+	}
+	table.Render()
 }
 
 func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
@@ -239,6 +226,23 @@ func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
 	}
 	table.Append(row)
 	table.Render()
+}
+
+func (r *Repl) oututDocsJSON(docs []*firestore.DocumentSnapshot) {
+	for _, doc := range docs {
+		r.outputDocJSON(doc)
+		fmt.Fprintln(r.out, LongLine)
+	}
+}
+
+func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
+	fmt.Fprintf(r.out, "ID: %s\n", doc.Ref.ID)
+	j, err := json.Marshal(doc.Data())
+	if err != nil {
+		fmt.Fprintf(r.out, "invalid data: %s\n", err)
+		return
+	}
+	fmt.Fprintf(r.out, "Data: %s\n", j)
 }
 
 func (r *Repl) toTableCell(val any, ok bool) string {

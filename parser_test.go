@@ -104,6 +104,14 @@ func TestParse(t *testing.T) {
 			}},
 		},
 		{
+			desc:  "query with multiple filters",
+			input: `QUERY user WHERE age = 20 AND name = "John Doe"`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewIntFilter("age", OPERATOR_EQ, 20),
+				NewStringFilter("name", OPERATOR_EQ, "John Doe"),
+			}},
+		},
+		{
 			desc:  "query with trim head slash",
 			input: `QUERY /user`,
 			want:  &QueryOperation{collection: "user"},
@@ -153,6 +161,21 @@ func TestParse(t *testing.T) {
 			want: &QueryOperation{collection: "user", selects: []string{"name", "age"}, filters: []Filter{
 				NewIntFilter("age", OPERATOR_EQ, 20),
 			}, orderBys: []OrderBy{{"age", firestore.Desc}}, limit: 10},
+		},
+		{
+			desc:  "count",
+			input: `COUNT user WHERE age = 20`,
+			want: &CountOperation{collection: "user", filters: []Filter{
+				NewIntFilter("age", OPERATOR_EQ, 20),
+			}},
+		},
+		{
+			desc:  "count with multiple filters",
+			input: `COUNT user WHERE age = 20 AND name = "John Doe"`,
+			want: &CountOperation{collection: "user", filters: []Filter{
+				NewIntFilter("age", OPERATOR_EQ, 20),
+				NewStringFilter("name", OPERATOR_EQ, "John Doe"),
+			}},
 		},
 		{
 			desc:  "list collections",

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/firestore/apiv1/firestorepb"
 	"google.golang.org/api/iterator"
 )
 
@@ -66,6 +67,30 @@ func (exe *Executor) ExecuteGet(ctx context.Context, op *GetOperation) (*firesto
 		return nil, err
 	}
 	return doc, nil
+}
+
+func (exe *Executor) ExecuteCount(ctx context.Context, op *CountOperation) (int64, error) {
+	collection := exe.fs.Collection(op.Collection())
+	if collection == nil {
+		return 0, ErrInvalidCollection
+	}
+	q := collection.Query
+	for _, filter := range op.filters {
+		q = q.Where(filter.FieldName(), string(filter.Operator()), filter.Value())
+	}
+
+	aggrQ := q.NewAggregationQuery().WithCount("all")
+	results, err := aggrQ.Get(ctx)
+	if err != nil {
+		return 0, err
+	}
+	count, ok := results["all"]
+	if !ok {
+		return 0, errors.New("invalid aggregation result")
+	}
+
+	v := count.(*firestorepb.Value)
+	return v.GetIntegerValue(), nil
 }
 
 func (exe *Executor) ExecuteListCollections(ctx context.Context, cmd *MetacommandListCollections) ([]string, error) {

@@ -8,6 +8,7 @@ const (
 
 	GET    = "GET"
 	QUERY  = "QUERY"
+	COUNT  = "COUNT"
 	SELECT = "SELECT"
 
 	WHERE              = "WHERE"
@@ -53,6 +54,7 @@ type Token struct {
 var keywards = map[string]TokenType{
 	"GET":    GET,
 	"QUERY":  QUERY,
+	"COUNT":  COUNT,
 	"SELECT": SELECT,
 	"WHERE":  WHERE,
 	"AND":    AND,

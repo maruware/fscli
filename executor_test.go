@@ -378,6 +378,58 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestCount(t *testing.T) {
+	os.Setenv("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080")
+	ctx := context.Background()
+	fs, err := firestore.NewClient(ctx, "fscli-executor-test-count")
+	if err != nil {
+		t.Fatal(err)
+	}
+	exe := NewExecutor(ctx, fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if exe == nil {
+		t.Fatal("executor is nil")
+	}
+
+	err = seed(fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanSeed(fs)
+
+	tests := []struct {
+		desc  string
+		input *CountOperation
+		want  int64
+	}{
+		{
+			desc:  "count",
+			input: NewCountOperation("users", []Filter{}),
+			want:  5,
+		},
+		{
+			desc: "count with where",
+			input: NewCountOperation("users", []Filter{
+				NewIntFilter("age", ">=", 22),
+			}),
+			want: 3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			count, err := exe.ExecuteCount(ctx, tt.input)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, tt.want, count)
+		})
+	}
+}
+
 func TestListCollections(t *testing.T) {
 	seed := func(c *firestore.Client) error {
 		ctx := context.Background()

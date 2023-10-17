@@ -7,6 +7,7 @@ type OperationType string
 const (
 	OPERATION_TYPE_QUERY OperationType = "QUERY"
 	OPERATION_TYPE_GET   OperationType = "GET"
+	OPERATION_TYPE_COUNT OperationType = "COUNT"
 )
 
 type Operation interface {
@@ -152,4 +153,22 @@ func (op *GetOperation) Collection() string {
 
 func (op *GetOperation) DocId() string {
 	return op.docId
+}
+
+type CountOperation struct {
+	BaseOperation
+	collection string
+	filters    []Filter
+}
+
+func NewCountOperation(collection string, filters []Filter) *CountOperation {
+	return &CountOperation{collection: collection, filters: filters}
+}
+
+func (op *CountOperation) OperationType() OperationType {
+	return OPERATION_TYPE_COUNT
+}
+
+func (op *CountOperation) Collection() string {
+	return op.collection
 }

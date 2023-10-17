@@ -343,6 +343,18 @@ func TestLexer(t *testing.T) {
 			},
 		},
 		{
+			desc:  "count",
+			input: `COUNT users WHERE name = "John Doe"`,
+			want: []Token{
+				{Type: COUNT, Literal: "COUNT"},
+				{Type: IDENT, Literal: "users"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "name"},
+				{Type: EQ, Literal: "="},
+				{Type: STRING, Literal: "John Doe"},
+			},
+		},
+		{
 			desc:  "list collections",
 			input: `\d`,
 			want: []Token{

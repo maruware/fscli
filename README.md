@@ -66,6 +66,16 @@ $ fscli --project-id my-project
 +----------------------+------------+----------------+
 | nOsNxixUQ1rqNwVJz56O | First post | [tech finance] |
 +----------------------+------------+----------------+
+> COUNT users
+2
+> COUNT users WHERE name = "takashi"
+1
+> \d
+users
+posts
+groups
+> \d groups/yvPWOCcd4CvfUr2POuXk
+members
 ```
 
 ### JSON mode

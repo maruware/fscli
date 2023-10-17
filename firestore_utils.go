@@ -47,3 +47,10 @@ func getCollectionIds(cols []*firestore.CollectionRef) []string {
 	}
 	return ids
 }
+
+func normalizeFirestorePath(s string) string {
+	if strings.HasPrefix(s, "/") {
+		return s[1:]
+	}
+	return s
+}

@@ -54,7 +54,7 @@ func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 		return nil, fmt.Errorf("invalid: expected collection but got %s", p.curToken.Literal)
 	}
 
-	op.collection = p.trimHeadSlash(p.curToken.Literal)
+	op.collection = normalizeFirestorePath(p.curToken.Literal)
 
 	p.nextToken()
 
@@ -139,7 +139,7 @@ func (p *Parser) parseGetOperation() (*GetOperation, error) {
 		return nil, fmt.Errorf("invalid: expected path but got %s", p.curToken.Literal)
 	}
 
-	path := p.trimHeadSlash(p.curToken.Literal)
+	path := normalizeFirestorePath(p.curToken.Literal)
 	lastSlash := strings.LastIndex(path, "/")
 	if lastSlash == -1 {
 		return nil, fmt.Errorf("invalid")
@@ -344,11 +344,4 @@ func (p *Parser) expectPeek(t TokenType) bool {
 func (p *Parser) peekError(t TokenType) {
 	msg := fmt.Sprintf("expected next token tobe %s, got %s instead", t, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
-}
-
-func (p *Parser) trimHeadSlash(s string) string {
-	if strings.HasPrefix(s, "/") {
-		return s[1:]
-	}
-	return s
 }

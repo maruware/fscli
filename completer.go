@@ -68,7 +68,7 @@ func (c *Completer) Parse() ([]prompt.Suggest, error) {
 		return c.parseQueryOperation()
 	}
 	if c.curTokenIs(GET) {
-		return []prompt.Suggest{}, nil
+		return c.parseGetOperation()
 	}
 
 	if c.curTokenIs(IDENT) {
@@ -84,10 +84,17 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 
 	// collection := c.curToken.Literal
 	if c.peekTokenIs(EOF) {
-		lastSlash := strings.LastIndex(c.curToken.Literal, "/")
-		baseDoc := ""
-		if lastSlash != -1 {
-			baseDoc = c.curToken.Literal[:lastSlash]
+		collection := normalizeFirestorePath(c.curToken.Literal)
+		parts := strings.Split(collection, "/")
+		if len(parts)%2 == 0 {
+			return []prompt.Suggest{}, nil
+		}
+
+		var baseDoc string
+		if len(parts) == 1 {
+			baseDoc = ""
+		} else {
+			baseDoc = strings.Join(parts[:len(parts)-1], "/")
 		}
 		collections, err := c.findCollections(baseDoc)
 		if err != nil {
@@ -212,6 +219,38 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 	// asc/ desc / limit
 	if c.curTokenIs(IDENT) {
 		return prompt.FilterHasPrefix([]prompt.Suggest{ascSuggestion, descSuggestion, limitSuggestion}, c.curToken.Literal, true), nil
+	}
+
+	return []prompt.Suggest{}, nil
+}
+
+func (c *Completer) parseGetOperation() ([]prompt.Suggest, error) {
+	if !c.expectPeek(IDENT) {
+		return []prompt.Suggest{}, nil
+	}
+	if c.peekTokenIs(EOF) {
+		docPath := normalizeFirestorePath(c.curToken.Literal)
+		parts := strings.Split(docPath, "/")
+		if len(parts)%2 == 0 {
+			return []prompt.Suggest{}, nil
+		}
+		var baseDoc string
+		if len(parts) == 1 {
+			baseDoc = ""
+		} else {
+			baseDoc = strings.Join(parts[:len(parts)-1], "/")
+		}
+
+		collections, err := c.findCollections(baseDoc)
+		if err != nil {
+			return []prompt.Suggest{}, nil
+		}
+		suggestions := make([]prompt.Suggest, 0, len(collections))
+		for _, col := range collections {
+			suggestions = append(suggestions, newCollectionSuggestion(baseDoc, col))
+		}
+
+		return prompt.FilterHasPrefix(suggestions, c.curToken.Literal, false), nil
 	}
 
 	return []prompt.Suggest{}, nil

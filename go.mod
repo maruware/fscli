@@ -1,10 +1,10 @@
 module github.com/maruware/fscli
 
-go 1.21.1
+go 1.23.0
 
 require (
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.16.0
 	google.golang.org/api v0.214.0
 )
 

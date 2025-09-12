@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -42,6 +41,6 @@ func TestRepl_ProcessLineFromPipe(t *testing.T) {
 	repl := NewRepl(ctx, fs, &stdin, &stdout, OutputModeJSON)
 	repl.ProcessLineFromPipe()
 
-	assert.Contains(t, stdout.String(), "ID: testuser")
-	assert.JSONEq(t, `{"age":30,"name":"test user"}`, strings.TrimSpace(strings.Split(stdout.String(), "Data:")[1]))
+	expectedJSON := `{"id":"testuser","data":{"age":30,"name":"test user"}}`
+	assert.JSONEq(t, expectedJSON, stdout.String())
 }

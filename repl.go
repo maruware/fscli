@@ -162,7 +162,7 @@ func (r *Repl) ProcessLine(line string) {
 		}
 
 		if r.outputMode == OutputModeJSON {
-			r.oututDocsJSON(docs)
+			r.outputDocsJSON(docs)
 		} else if r.outputMode == OutputModeTable {
 			r.outputDocsTable(docs)
 		}
@@ -250,21 +250,43 @@ func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
 	table.Render()
 }
 
-func (r *Repl) oututDocsJSON(docs []*firestore.DocumentSnapshot) {
-	for _, doc := range docs {
-		r.outputDocJSON(doc)
-		fmt.Fprintln(r.out, LongLine)
+func (r *Repl) outputDocsJSON(docs []*firestore.DocumentSnapshot) {
+	type docOutput struct {
+		ID   string         `json:"id"`
+		Data map[string]any `json:"data"`
 	}
-}
 
-func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
-	fmt.Fprintf(r.out, "ID: %s\n", doc.Ref.ID)
-	j, err := json.Marshal(doc.Data())
+	outputs := make([]docOutput, 0, len(docs))
+	for _, doc := range docs {
+		outputs = append(outputs, docOutput{
+			ID:   doc.Ref.ID,
+			Data: doc.Data(),
+		})
+	}
+
+	j, err := json.Marshal(outputs)
 	if err != nil {
 		fmt.Fprintf(r.out, "invalid data: %s\n", err)
 		return
 	}
-	fmt.Fprintf(r.out, "Data: %s\n", j)
+	fmt.Fprintln(r.out, string(j))
+}
+
+func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
+	output := struct {
+		ID   string         `json:"id"`
+		Data map[string]any `json:"data"`
+	}{
+		ID:   doc.Ref.ID,
+		Data: doc.Data(),
+	}
+
+	j, err := json.Marshal(output)
+	if err != nil {
+		fmt.Fprintf(r.out, "invalid data: %s\n", err)
+		return
+	}
+	fmt.Fprintln(r.out, string(j))
 }
 
 func (r *Repl) toTableCell(val any, ok bool) string {

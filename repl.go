@@ -1,6 +1,7 @@
 package fscli
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -86,7 +87,7 @@ func (r *Repl) Start() {
 	history := r.readHistory()
 
 	p := prompt.New(
-		r.processLine,
+		r.promptProcessLine,
 		r.completer,
 		prompt.OptionPrefix("> "),
 		prompt.OptionSwitchKeyBindMode(prompt.CommonKeyBind),
@@ -107,7 +108,7 @@ func (r *Repl) Start() {
 	p.Run()
 }
 
-func (r *Repl) processLine(line string) {
+func (r *Repl) promptProcessLine(line string) {
 	if strings.TrimSpace(line) == "" {
 		return
 	}
@@ -117,7 +118,10 @@ func (r *Repl) processLine(line string) {
 		fmt.Fprintf(r.out, "error: %s\n", err)
 		return
 	}
+	r.ProcessLine(line)
+}
 
+func (r *Repl) ProcessLine(line string) {
 	lexer := NewLexer(line)
 	parser := NewParser(lexer)
 	result, err := parser.Parse()
@@ -186,6 +190,15 @@ func (r *Repl) processLine(line string) {
 		fmt.Fprintf(r.out, "%d\n", count)
 	}
 }
+
+func (r *Repl) ProcessLineFromPipe() {
+	scanner := bufio.NewScanner(r.in)
+	for scanner.Scan() {
+		line := scanner.Text()
+		r.ProcessLine(line)
+	}
+}
+
 
 func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 	out, render := r.pagerableOut()

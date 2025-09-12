@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/c-bata/go-prompt"
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 	"github.com/shibukawa/configdir"
 	"golang.org/x/exp/slices"
 )
@@ -202,9 +203,8 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 	}
 	slices.Sort(keys)
 
-	table := tablewriter.NewWriter(out)
-	table.SetAutoFormatHeaders(false)
-	table.SetHeader(append([]string{"ID"}, keys...))
+	table := tablewriter.NewTable(out, tablewriter.WithConfig(r.tableConfig()))
+	table.Header(append([]string{"ID"}, keys...))
 
 	for _, doc := range docs {
 		row := []string{doc.Ref.ID}
@@ -224,9 +224,8 @@ func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
 	}
 	slices.Sort(keys)
 
-	table := tablewriter.NewWriter(r.out)
-	table.SetAutoFormatHeaders(false)
-	table.SetHeader(append([]string{"ID"}, keys...))
+	table := tablewriter.NewTable(r.out, tablewriter.WithConfig(r.tableConfig()))
+	table.Header(append([]string{"ID"}, keys...))
 
 	row := []string{doc.Ref.ID}
 	for _, k := range keys {
@@ -235,6 +234,14 @@ func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
 	}
 	table.Append(row)
 	table.Render()
+}
+
+func (r *Repl) tableConfig() tablewriter.Config {
+	return tablewriter.Config{
+		Header: tw.CellConfig{
+			Formatting: tw.CellFormatting{AutoFormat: tw.Off},
+		},
+	}
 }
 
 func (r *Repl) oututDocsJSON(docs []*firestore.DocumentSnapshot) {

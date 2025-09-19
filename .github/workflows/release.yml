@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Bump-up Semantic Version
         uses: kyoh86/git-vertag-action@v1.1
@@ -25,7 +25,7 @@ jobs:
           method: "${{ github.event.inputs.method }}"
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: "go.mod"
 

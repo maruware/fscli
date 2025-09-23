@@ -217,6 +217,21 @@ func TestLexer(t *testing.T) {
 			},
 		},
 		{
+			desc:  "query with timestamp",
+			input: `QUERY user WHERE created_at > TIMESTAMP("2006-01-02T15:04:05+09:00")`,
+			want: []Token{
+				{Type: QUERY, Literal: "QUERY"},
+				{Type: IDENT, Literal: "user"},
+				{Type: WHERE, Literal: "WHERE"},
+				{Type: IDENT, Literal: "created_at"},
+				{Type: GT, Literal: ">"},
+				{Type: IDENT, Literal: "TIMESTAMP"},
+				{Type: LPAREN, Literal: "("},
+				{Type: STRING, Literal: "2006-01-02T15:04:05+09:00"},
+				{Type: RPAREN, Literal: ")"},
+			},
+		},
+		{
 			desc:  "get",
 			input: `GET users/abc`,
 			want: []Token{

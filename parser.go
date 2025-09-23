@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/firestore"
 )
@@ -266,6 +267,9 @@ func (p *Parser) parseFilter() (Filter, error) {
 	if p.curTokenIs(STRING) {
 		return NewStringFilter(field, operator, p.curToken.Literal), nil
 	}
+	if p.curTokenIs(IDENT) && p.curToken.Literal == F_TIMESTAMP {
+		return p.parseTimestampFilter(field, operator)
+	}
 	return nil, fmt.Errorf("invalid filter value: %s", p.curToken.Literal)
 }
 
@@ -327,6 +331,26 @@ func (p *Parser) parseArrayFilter(field string, operator Operator) (Filter, erro
 		p.nextToken()
 	}
 	return NewArrayFilter(field, operator, values), nil
+}
+
+func (p *Parser) parseTimestampFilter(field string, operator Operator) (Filter, error) {
+	if !p.expectPeek(LPAREN) {
+		return nil, fmt.Errorf("invalid: expected ( but got %s", p.curToken.Literal)
+	}
+	p.nextToken()
+	if !p.curTokenIs(STRING) {
+		return nil, fmt.Errorf("invalid: expected string but got %s", p.curToken.Literal)
+	}
+	timeStr := p.curToken.Literal
+	if !p.expectPeek(RPAREN) {
+		return nil, fmt.Errorf("invalid: expected ) but got %s", p.curToken.Literal)
+	}
+
+	t, err := parseTime(timeStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid timestamp value: %s", timeStr)
+	}
+	return NewTimestampFilter(field, operator, t), nil
 }
 
 func (p *Parser) parseMetacommand() (Metacommand, error) {
@@ -393,4 +417,19 @@ func (p *Parser) expectPeek(t TokenType) bool {
 func (p *Parser) peekError(t TokenType) {
 	msg := fmt.Sprintf("expected next token tobe %s, got %s instead", t, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
+}
+
+func parseTime(timeStr string) (time.Time, error) {
+	layouts := []string{
+		time.RFC3339,
+		"2006-01-02T15:04:05",
+		"2006-01-02",
+	}
+	for _, layout := range layouts {
+		t, err := time.Parse(layout, timeStr)
+		if err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("invalid timestamp format: %s", timeStr)
 }

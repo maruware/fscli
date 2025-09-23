@@ -1,6 +1,10 @@
 package fscli
 
-import "cloud.google.com/go/firestore"
+import (
+	"time"
+
+	"cloud.google.com/go/firestore"
+)
 
 type OperationType string
 
@@ -104,6 +108,19 @@ func NewArrayFilter(field string, operator Operator, value []any) *ArrayFilter {
 }
 
 func (f *ArrayFilter) Value() any {
+	return f.value
+}
+
+type TimestampFilter struct {
+	BaseFilter
+	value time.Time
+}
+
+func NewTimestampFilter(field string, operator Operator, value time.Time) *TimestampFilter {
+	return &TimestampFilter{BaseFilter{field, operator}, value}
+}
+
+func (f *TimestampFilter) Value() any {
 	return f.value
 }
 

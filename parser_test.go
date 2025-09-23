@@ -2,6 +2,7 @@ package fscli
 
 import (
 	"testing"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/stretchr/testify/assert"
@@ -101,6 +102,30 @@ func TestParse(t *testing.T) {
 			input: `QUERY user WHERE nicknames ARRAY_CONTAINS_ANY ["Doe", "John"]`,
 			want: &QueryOperation{collection: "user", filters: []Filter{
 				NewArrayFilter("nicknames", OPERATOR_ARRAY_CONTAINS_ANY, []any{"Doe", "John"}),
+			}},
+		},
+		{
+			desc:  "query with timestamp",
+			input: `QUERY user WHERE created_at = TIMESTAMP("2006-01-02T15:04:05Z")`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewTimestampFilter("created_at", OPERATOR_EQ, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)),
+			}},
+		},
+		{
+			desc:  "query with date only timestamp",
+			input: `QUERY user WHERE created_at = TIMESTAMP("2006-01-02")`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewTimestampFilter("created_at", OPERATOR_EQ, time.Date(2006, 1, 2, 0, 0, 0, 0, time.UTC)),
+			}},
+		},
+		{
+			desc:  "query with date with timezone",
+			input: `QUERY user WHERE created_at = TIMESTAMP("2006-01-02T15:04:05+09:00")`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewTimestampFilter("created_at", OPERATOR_EQ, func() time.Time {
+					t, _ := time.Parse(time.RFC3339, "2006-01-02T15:04:05+09:00")
+					return t
+				}()),
 			}},
 		},
 		{

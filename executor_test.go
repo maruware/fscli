@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/stretchr/testify/assert"
@@ -31,13 +32,17 @@ func seed(c *firestore.Client) error {
 			if err != nil {
 				return err
 			}
-			postId := fmt.Sprintf("post%d", i)
-			postsCollection := fmt.Sprintf("%s/%s/posts", "users", userId)
-			_, err = c.Collection(postsCollection).Doc(postId).Set(ctx, map[string]interface{}{
-				"title": fmt.Sprintf("post-%d", i),
-			})
-			if err != nil {
-				return err
+
+			for j := 0; j < 5; j++ {
+				postId := fmt.Sprintf("post-%d-%d", i, j)
+				postsCollection := fmt.Sprintf("%s/%s/posts", "users", userId)
+				_, err = c.Collection(postsCollection).Doc(postId).Set(ctx, map[string]interface{}{
+					"title":       fmt.Sprintf("post-%d-%d", i, j),
+					"publishedAt": time.Date(2025, 1, 1+j, 0, 0, 0, 0, time.UTC),
+				})
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil
@@ -132,11 +137,12 @@ func TestQuery(t *testing.T) {
 		{
 			desc: "query with subcollection",
 			input: &QueryOperation{collection: fmt.Sprintf("%s/1/posts", "users"), filters: []Filter{
-				NewStringFilter("title", "==", "post-1"),
+				NewStringFilter("title", "==", "post-1-1"),
 			}},
 			want: []map[string]any{
 				{
-					"title": "post-1",
+					"title":       "post-1-1",
+					"publishedAt": time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
 				},
 			},
 		},
@@ -232,6 +238,22 @@ func TestQuery(t *testing.T) {
 			want: []map[string]any{
 				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
 				{"name": "user-2", "age": int64(22), "nicknames": []any{"u-2-1", "u-2-2"}},
+			},
+		},
+		{
+			desc: "query with timestamp",
+			input: &QueryOperation{collection: fmt.Sprintf("%s/1/posts", "users"), filters: []Filter{
+				NewTimestampFilter("publishedAt", "<=", time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)),
+			}},
+			want: []map[string]any{
+				{
+					"title":       "post-1-0",
+					"publishedAt": time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+				},
+				{
+					"title":       "post-1-1",
+					"publishedAt": time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
+				},
 			},
 		},
 		{

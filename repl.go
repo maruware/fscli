@@ -1,6 +1,7 @@
 package fscli
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -87,7 +88,7 @@ func (r *Repl) Start() {
 	history := r.readHistory()
 
 	p := prompt.New(
-		r.processLine,
+		r.promptProcessLine,
 		r.completer,
 		prompt.OptionPrefix("> "),
 		prompt.OptionSwitchKeyBindMode(prompt.CommonKeyBind),
@@ -108,7 +109,7 @@ func (r *Repl) Start() {
 	p.Run()
 }
 
-func (r *Repl) processLine(line string) {
+func (r *Repl) promptProcessLine(line string) {
 	if strings.TrimSpace(line) == "" {
 		return
 	}
@@ -118,73 +119,104 @@ func (r *Repl) processLine(line string) {
 		fmt.Fprintf(r.out, "error: %s\n", err)
 		return
 	}
+	r.ProcessLine(line)
+}
 
+func (r *Repl) ProcessLine(line string) {
 	lexer := NewLexer(line)
 	parser := NewParser(lexer)
-	result, err := parser.Parse()
+	op, err := parser.Parse()
 	if err != nil {
 		fmt.Fprintf(r.out, "error: %s\n", err)
 		return
 	}
-	if result == nil {
+	if op == nil {
 		return
 	}
 
-	if op, ok := result.(*MetacommandPager); ok {
-		r.enabledPager = op.on
-		return
+	if err := r.executeOperation(op); err != nil {
+		fmt.Fprintf(r.out, "error: %s\n", err)
+	}
+}
+
+func (r *Repl) executeOperation(op any) error {
+	switch v := op.(type) {
+	case *MetacommandPager:
+		return r.handlePager(v)
+	case *MetacommandListCollections:
+		return r.handleListCollections(v)
+	case *QueryOperation:
+		return r.handleQuery(v)
+	case *GetOperation:
+		return r.handleGet(v)
+	case *CountOperation:
+		return r.handleCount(v)
+	default:
+		return fmt.Errorf("unknown operation type")
+	}
+}
+
+func (r *Repl) handlePager(op *MetacommandPager) error {
+	r.enabledPager = op.on
+	return nil
+}
+
+func (r *Repl) handleListCollections(op *MetacommandListCollections) error {
+	cols, err := r.exe.ExecuteListCollections(r.ctx, op)
+	if err != nil {
+		return err
 	}
 
-	if op, ok := result.(*MetacommandListCollections); ok {
-		cols, err := r.exe.ExecuteListCollections(r.ctx, op)
-		if err != nil {
-			fmt.Fprintf(r.out, "error: %s\n", err)
-			return
-		}
+	out, render := r.pagerableOut()
+	for _, col := range cols {
+		fmt.Fprintf(out, "%s\n", col)
+	}
+	return render()
+}
 
-		out, render := r.pagerableOut()
-		for _, col := range cols {
-			fmt.Fprintf(out, "%s\n", col)
-		}
-		if err := render(); err != nil {
-			fmt.Fprintf(r.out, "error: %s\n", err)
-		}
+func (r *Repl) handleQuery(op *QueryOperation) error {
+	docs, err := r.exe.ExecuteQuery(r.ctx, op)
+	if err != nil {
+		return err
 	}
 
-	if op, ok := result.(*QueryOperation); ok {
-		docs, err := r.exe.ExecuteQuery(r.ctx, op)
-		if err != nil {
-			fmt.Fprintf(r.out, "error: %s\n", err)
-			return
-		}
-
-		if r.outputMode == OutputModeJSON {
-			r.oututDocsJSON(docs)
-		} else if r.outputMode == OutputModeTable {
-			r.outputDocsTable(docs)
-		}
+	if r.outputMode == OutputModeJSON {
+		r.outputDocsJSON(docs)
+	} else if r.outputMode == OutputModeTable {
+		r.outputDocsTable(docs)
 	}
-	if op, ok := result.(*GetOperation); ok {
-		doc, err := r.exe.ExecuteGet(r.ctx, op)
-		if err != nil {
-			fmt.Fprintf(r.out, "error: %s\n", err)
-			return
-		}
+	return nil
+}
 
-		if r.outputMode == OutputModeJSON {
-			r.outputDocJSON(doc)
-		} else if r.outputMode == OutputModeTable {
-			r.outputDocTable(doc)
-		}
+func (r *Repl) handleGet(op *GetOperation) error {
+	doc, err := r.exe.ExecuteGet(r.ctx, op)
+	if err != nil {
+		return err
 	}
-	if op, ok := result.(*CountOperation); ok {
-		count, err := r.exe.ExecuteCount(r.ctx, op)
-		if err != nil {
-			fmt.Fprintf(r.out, "error: %s\n", err)
-			return
-		}
 
-		fmt.Fprintf(r.out, "%d\n", count)
+	if r.outputMode == OutputModeJSON {
+		r.outputDocJSON(doc)
+	} else if r.outputMode == OutputModeTable {
+		r.outputDocTable(doc)
+	}
+	return nil
+}
+
+func (r *Repl) handleCount(op *CountOperation) error {
+	count, err := r.exe.ExecuteCount(r.ctx, op)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(r.out, "%d\n", count)
+	return nil
+}
+
+func (r *Repl) ProcessLineFromPipe() {
+	scanner := bufio.NewScanner(r.in)
+	for scanner.Scan() {
+		line := scanner.Text()
+		r.ProcessLine(line)
 	}
 }
 
@@ -244,21 +276,43 @@ func (r *Repl) tableConfig() tablewriter.Config {
 	}
 }
 
-func (r *Repl) oututDocsJSON(docs []*firestore.DocumentSnapshot) {
-	for _, doc := range docs {
-		r.outputDocJSON(doc)
-		fmt.Fprintln(r.out, LongLine)
+func (r *Repl) outputDocsJSON(docs []*firestore.DocumentSnapshot) {
+	type docOutput struct {
+		ID   string         `json:"id"`
+		Data map[string]any `json:"data"`
 	}
-}
 
-func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
-	fmt.Fprintf(r.out, "ID: %s\n", doc.Ref.ID)
-	j, err := json.Marshal(doc.Data())
+	outputs := make([]docOutput, 0, len(docs))
+	for _, doc := range docs {
+		outputs = append(outputs, docOutput{
+			ID:   doc.Ref.ID,
+			Data: doc.Data(),
+		})
+	}
+
+	j, err := json.Marshal(outputs)
 	if err != nil {
 		fmt.Fprintf(r.out, "invalid data: %s\n", err)
 		return
 	}
-	fmt.Fprintf(r.out, "Data: %s\n", j)
+	fmt.Fprintln(r.out, string(j))
+}
+
+func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
+	output := struct {
+		ID   string         `json:"id"`
+		Data map[string]any `json:"data"`
+	}{
+		ID:   doc.Ref.ID,
+		Data: doc.Data(),
+	}
+
+	j, err := json.Marshal(output)
+	if err != nil {
+		fmt.Fprintf(r.out, "invalid data: %s\n", err)
+		return
+	}
+	fmt.Fprintln(r.out, string(j))
 }
 
 func (r *Repl) toTableCell(val any, ok bool) string {

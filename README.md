@@ -78,15 +78,38 @@ groups
 members
 ```
 
+### Non-Interactive Mode
+
+`fscli` can be used in non-interactive mode by piping commands to it. This is useful for scripting and automation.
+
+**Example: Get a single document and extract a field**
+```sh
+$ echo "GET users/user123" | fscli --project-id my-project --out-mode json | jq '.data.name'
+"Test User"
+```
+
+**Example: Query a collection and get the ID of the first result**
+```sh
+$ echo "QUERY users WHERE age > 25" | fscli --project-id my-project --out-mode json | jq '.[0].id'
+"user123"
+```
+
 ### JSON mode
 
-```sh
-$ fscli --project-id my-project --out-mode json
-> QUERY users
-ID: VfsA2DjQOWQmJ1LI8Xee
-Data: {"age":20,"name":"shigeru"}
---------------------------------------------------------------------------
-ID: ewpSGf5URC1L1vPENbxh
-Data: {"age":20,"name":"takashi"}
---------------------------------------------------------------------------
+The `--out-mode json` flag produces a single, valid JSON object (for `GET`) or an array of objects (for `QUERY`), making it easy to parse with tools like `jq`.
+
+**GET command output:**
+```json
+{
+  "id": "documentId",
+  "data": { "field": "value" }
+}
+```
+
+**QUERY command output:**
+```json
+[
+  { "id": "doc1", "data": { "field": "value" } },
+  { "id": "doc2", "data": { "field": "value" } }
+]
 ```

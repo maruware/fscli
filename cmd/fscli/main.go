@@ -37,7 +37,18 @@ func main() {
 
 			repl := fscli.NewRepl(cCtx.Context, fs, os.Stdin, os.Stdout, fscli.OutputMode(outModeFlag))
 
-			repl.Start()
+			// check stdin
+			fi, err := os.Stdin.Stat()
+			if err != nil {
+				return err
+			}
+			if (fi.Mode() & os.ModeCharDevice) == 0 {
+				// from pipe
+				repl.ProcessLineFromPipe()
+			} else {
+				// from terminal
+				repl.Start()
+			}
 			return nil
 		},
 	}

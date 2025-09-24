@@ -38,7 +38,11 @@ const (
 
 	LBRACKET = "["
 	RBRACKET = "]"
+	LPAREN   = "("
+	RPAREN   = ")"
 	COMMA    = ","
+
+	F_TIMESTAMP = "TIMESTAMP"
 
 	LIST_COLLECTIONS = "LIST_COLLECTIONS"
 	PAGER            = "PAGER"

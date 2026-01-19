@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sync v0.19.0
-	google.golang.org/api v0.259.0
+	google.golang.org/api v0.260.0
 )
 
 require (
@@ -23,7 +23,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.7 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.9 // indirect
 	github.com/googleapis/gax-go/v2 v2.16.0 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect

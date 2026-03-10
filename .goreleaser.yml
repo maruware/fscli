@@ -15,13 +15,16 @@ builds:
       - linux
       - darwin
       - windows
-brews:
+homebrew_casks:
   - repository:
       owner: maruware
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: "https://github.com/maruware/fscli"
     description: "A cli tool for firestore"
-    license: "MIT"
-    install: |
-      bin.install "fscli"
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/fscli"]
+          end

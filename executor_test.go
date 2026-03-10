@@ -275,6 +275,15 @@ func TestQuery(t *testing.T) {
 			},
 		},
 		{
+			desc: "query with __id__",
+			input: &QueryOperation{collection: "users", filters: []Filter{
+				NewStringFilter(FieldDocumentID, "==", "1"),
+			}},
+			want: []map[string]any{
+				{"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"}},
+			},
+		},
+		{
 			desc:  "query with order by",
 			input: &QueryOperation{collection: "users", orderBys: []OrderBy{{"age", firestore.Desc}}},
 			want: []map[string]any{

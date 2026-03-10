@@ -194,10 +194,21 @@ func (r *Repl) handleGet(op *GetOperation) error {
 		return err
 	}
 
+	data := doc.Data()
+	if len(op.Selects()) > 0 {
+		filtered := make(map[string]any, len(op.Selects()))
+		for _, s := range op.Selects() {
+			if v, ok := data[s]; ok {
+				filtered[s] = v
+			}
+		}
+		data = filtered
+	}
+
 	if r.outputMode == OutputModeJSON {
-		r.outputDocJSON(doc)
+		r.outputDocJSON(doc.Ref.ID, data)
 	} else if r.outputMode == OutputModeTable {
-		r.outputDocTable(doc)
+		r.outputDocTable(doc.Ref.ID, data)
 	}
 	return nil
 }
@@ -249,9 +260,9 @@ func (r *Repl) outputDocsTable(docs []*firestore.DocumentSnapshot) {
 	table.Render()
 }
 
-func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
+func (r *Repl) outputDocTable(id string, data map[string]any) {
 	keys := []string{}
-	for k := range doc.Data() {
+	for k := range data {
 		keys = append(keys, k)
 	}
 	slices.Sort(keys)
@@ -259,9 +270,9 @@ func (r *Repl) outputDocTable(doc *firestore.DocumentSnapshot) {
 	table := tablewriter.NewTable(r.out, tablewriter.WithConfig(r.tableConfig()))
 	table.Header(append([]string{"ID"}, keys...))
 
-	row := []string{doc.Ref.ID}
+	row := []string{id}
 	for _, k := range keys {
-		val, ok := doc.Data()[k]
+		val, ok := data[k]
 		row = append(row, r.toTableCell(val, ok))
 	}
 	table.Append(row)
@@ -298,13 +309,13 @@ func (r *Repl) outputDocsJSON(docs []*firestore.DocumentSnapshot) {
 	fmt.Fprintln(r.out, string(j))
 }
 
-func (r *Repl) outputDocJSON(doc *firestore.DocumentSnapshot) {
+func (r *Repl) outputDocJSON(id string, data map[string]any) {
 	output := struct {
 		ID   string         `json:"id"`
 		Data map[string]any `json:"data"`
 	}{
-		ID:   doc.Ref.ID,
-		Data: doc.Data(),
+		ID:   id,
+		Data: data,
 	}
 
 	j, err := json.Marshal(output)

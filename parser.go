@@ -152,6 +152,18 @@ func (p *Parser) parseGetOperation() (*GetOperation, error) {
 	}
 	op.collection = path[:lastSlash]
 	op.docId = path[lastSlash+1:]
+
+	p.nextToken()
+
+	if p.curTokenIs(SELECT) {
+		p.nextToken()
+		selects, err := p.parseSelects()
+		if err != nil {
+			return nil, err
+		}
+		op.selects = selects
+	}
+
 	return op, nil
 }
 

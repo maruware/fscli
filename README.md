@@ -8,7 +8,11 @@ A cli tool for firestore
 
 ## Installation
 
-Download binary from [Releases](https://github.com/maruware/fscli/releases)
+```shell
+brew install maruware/tap/fscli
+```
+
+or download binary from [Releases](https://github.com/maruware/fscli/releases)
 
 or
 

@@ -26,7 +26,13 @@ func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]*f
 	}
 	q := collection.Query
 	for _, filter := range op.filters {
-		q = q.Where(filter.FieldName(), string(filter.Operator()), filter.Value())
+		fieldName := filter.FieldName()
+		value := filter.Value()
+		if fieldName == FieldDocumentID {
+			fieldName = firestore.DocumentID
+			value = toDocRefValue(collection, value)
+		}
+		q = q.Where(fieldName, string(filter.Operator()), value)
 	}
 
 	if len(op.selects) > 0 {
@@ -76,7 +82,13 @@ func (exe *Executor) ExecuteCount(ctx context.Context, op *CountOperation) (int6
 	}
 	q := collection.Query
 	for _, filter := range op.filters {
-		q = q.Where(filter.FieldName(), string(filter.Operator()), filter.Value())
+		fieldName := filter.FieldName()
+		value := filter.Value()
+		if fieldName == FieldDocumentID {
+			fieldName = firestore.DocumentID
+			value = toDocRefValue(collection, value)
+		}
+		q = q.Where(fieldName, string(filter.Operator()), value)
 	}
 
 	aggrQ := q.NewAggregationQuery().WithCount("all")
@@ -95,4 +107,21 @@ func (exe *Executor) ExecuteCount(ctx context.Context, op *CountOperation) (int6
 
 func (exe *Executor) ExecuteListCollections(ctx context.Context, cmd *MetacommandListCollections) ([]string, error) {
 	return findAllCollections(ctx, exe.fs, cmd.baseDoc)
+}
+
+func toDocRefValue(collection *firestore.CollectionRef, value any) any {
+	switch v := value.(type) {
+	case string:
+		return collection.Doc(v)
+	case []any:
+		refs := make([]*firestore.DocumentRef, len(v))
+		for i, item := range v {
+			if s, ok := item.(string); ok {
+				refs[i] = collection.Doc(s)
+			}
+		}
+		return refs
+	default:
+		return value
+	}
 }

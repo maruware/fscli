@@ -27,6 +27,8 @@ func (op *BaseOperation) Type() string {
 	return "Operation"
 }
 
+const FieldDocumentID = "__id__"
+
 type Operator string
 
 const (

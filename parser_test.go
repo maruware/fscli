@@ -188,6 +188,20 @@ func TestParse(t *testing.T) {
 			}, orderBys: []OrderBy{{"age", firestore.Desc}}, limit: 10},
 		},
 		{
+			desc:  "query with __id__",
+			input: `QUERY user WHERE __id__ = "abc"`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewStringFilter("__id__", OPERATOR_EQ, "abc"),
+			}},
+		},
+		{
+			desc:  "query with __id__ IN",
+			input: `QUERY user WHERE __id__ IN ["abc", "def"]`,
+			want: &QueryOperation{collection: "user", filters: []Filter{
+				NewArrayFilter("__id__", OPERATOR_IN, []any{"abc", "def"}),
+			}},
+		},
+		{
 			desc:  "count",
 			input: `COUNT user WHERE age = 20`,
 			want: &CountOperation{collection: "user", filters: []Filter{

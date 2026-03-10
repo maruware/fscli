@@ -195,6 +195,16 @@ func TestParse(t *testing.T) {
 			}},
 		},
 		{
+			desc:  "get",
+			input: `GET user/1`,
+			want:  &GetOperation{collection: "user", docId: "1"},
+		},
+		{
+			desc:  "get with select",
+			input: `GET user/1 SELECT name, age`,
+			want:  &GetOperation{collection: "user", docId: "1", selects: []string{"name", "age"}},
+		},
+		{
 			desc:  "count with multiple filters",
 			input: `COUNT user WHERE age = 20 AND name = "John Doe"`,
 			want: &CountOperation{collection: "user", filters: []Filter{

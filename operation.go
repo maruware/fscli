@@ -154,10 +154,11 @@ type GetOperation struct {
 	BaseOperation
 	collection string
 	docId      string
+	selects    []string
 }
 
-func NewGetOperation(collection string, docId string) *GetOperation {
-	return &GetOperation{collection: collection, docId: docId}
+func NewGetOperation(collection string, docId string, selects []string) *GetOperation {
+	return &GetOperation{collection: collection, docId: docId, selects: selects}
 }
 
 func (op *GetOperation) OperationType() OperationType {
@@ -170,6 +171,10 @@ func (op *GetOperation) Collection() string {
 
 func (op *GetOperation) DocId() string {
 	return op.docId
+}
+
+func (op *GetOperation) Selects() []string {
+	return op.selects
 }
 
 type CountOperation struct {

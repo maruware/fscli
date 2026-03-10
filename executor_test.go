@@ -382,7 +382,7 @@ func TestGet(t *testing.T) {
 	}{
 		{
 			desc:  "get",
-			input: NewGetOperation("users", "1"),
+			input: NewGetOperation("users", "1", nil),
 			want: map[string]any{
 				"name": "user-1", "age": int64(21), "nicknames": []any{"u-1-1", "u-1-2"},
 			},

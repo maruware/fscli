@@ -22,6 +22,29 @@ import (
 
 const LongLine = "--------------------------------------------------------------------------"
 
+func deleteWordWithSlash(buf *prompt.Buffer) {
+	d := buf.Document()
+	t := d.TextBeforeCursor()
+	if len(t) == 0 {
+		return
+	}
+
+	runes := []rune(t)
+	i := len(runes) - 1
+
+	// Skip trailing separators
+	for i >= 0 && (runes[i] == ' ' || runes[i] == '/') {
+		i--
+	}
+	// Delete until next separator
+	for i >= 0 && runes[i] != ' ' && runes[i] != '/' {
+		i--
+	}
+
+	count := len(runes) - (i + 1)
+	buf.DeleteBeforeCursor(count)
+}
+
 type OutputMode string
 
 const (
@@ -102,7 +125,7 @@ func (r *Repl) Start() {
 		}),
 		prompt.OptionAddKeyBind(prompt.KeyBind{
 			Key: prompt.ControlW,
-			Fn:  prompt.DeleteWord,
+			Fn:  deleteWordWithSlash,
 		}),
 		prompt.OptionHistory(history),
 	)

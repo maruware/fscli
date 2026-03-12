@@ -1,7 +1,8 @@
 package fscli
 
 import (
-	"log"
+	"fmt"
+	"os"
 	"sync"
 
 	"cloud.google.com/go/firestore"
@@ -51,7 +52,8 @@ func fetchCollections(baseDoc string, getCollectionsIterator func(baseDoc string
 		var cols []*firestore.CollectionRef
 		pageToken, err := p.NextPage(&cols)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintf(os.Stderr, "\nERROR: %v\n", err)
+			unmarkCollectionsFetched(baseDoc)
 			return
 		}
 		collections = append(collections, getCollectionIds(cols)...)

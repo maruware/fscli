@@ -237,7 +237,8 @@ func (c *Completer) parseGetOperation() ([]prompt.Suggest, error) {
 		docPath := normalizeFirestorePath(c.curToken.Literal)
 		parts := strings.Split(docPath, "/")
 		if len(parts)%2 == 0 {
-			return []prompt.Suggest{}, nil
+			// complete doc path, suggest SELECT
+			return []prompt.Suggest{selectSuggestion}, nil
 		}
 		var baseDoc string
 		if len(parts) == 1 {
@@ -256,6 +257,35 @@ func (c *Completer) parseGetOperation() ([]prompt.Suggest, error) {
 		}
 
 		return prompt.FilterHasPrefix(suggestions, c.curToken.Literal, false), nil
+	}
+
+	c.nextToken()
+
+	if c.curTokenIs(EOF) {
+		return []prompt.Suggest{selectSuggestion}, nil
+	}
+
+	if c.curTokenIs(IDENT) {
+		return prompt.FilterHasPrefix([]prompt.Suggest{selectSuggestion}, c.curToken.Literal, true), nil
+	}
+
+	if c.curTokenIs(SELECT) {
+		c.nextToken()
+
+		if c.curTokenIs(EOF) {
+			return []prompt.Suggest{}, nil
+		}
+
+		// skip select fields
+		for !c.curTokenIs(EOF) {
+			if c.curTokenIs(COMMA) {
+				c.nextToken()
+			} else {
+				c.nextToken()
+			}
+		}
+
+		return []prompt.Suggest{}, nil
 	}
 
 	return []prompt.Suggest{}, nil

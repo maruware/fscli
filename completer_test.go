@@ -140,6 +140,26 @@ func TestCompleter(t *testing.T) {
 			want:  []prompt.Suggest{newCollectionSuggestion("user/1", "posts")},
 		},
 		{
+			desc:  "get with doc path suggest select",
+			input: `GET user/1 `,
+			want:  []prompt.Suggest{selectSuggestion},
+		},
+		{
+			desc:  "middle of get select",
+			input: `GET user/1 S`,
+			want:  []prompt.Suggest{selectSuggestion},
+		},
+		{
+			desc:  "get with select and no field",
+			input: `GET user/1 SELECT `,
+			want:  []prompt.Suggest{},
+		},
+		{
+			desc:  "get with select and field",
+			input: `GET user/1 SELECT name`,
+			want:  []prompt.Suggest{},
+		},
+		{
 			desc:  "middle of count",
 			input: `CO`,
 			want:  []prompt.Suggest{countSuggestion},

@@ -147,6 +147,18 @@ func TestQuery(t *testing.T) {
 			},
 		},
 		{
+			desc: "query with collection group",
+			input: NewCollectionGroupQueryOperation("posts", nil, []Filter{
+				NewStringFilter("title", "==", "post-1-1"),
+			}, nil, 0),
+			want: []map[string]any{
+				{
+					"title":       "post-1-1",
+					"publishedAt": time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		{
 			desc: "query with not equal",
 			input: &QueryOperation{collection: "users", filters: []Filter{
 				NewStringFilter("name", "!=", "user-1"),
@@ -447,6 +459,13 @@ func TestCount(t *testing.T) {
 				NewIntFilter("age", ">=", 22),
 			}),
 			want: 3,
+		},
+		{
+			desc: "count with collection group",
+			input: NewCollectionGroupCountOperation("posts", []Filter{
+				NewStringFilter("title", "==", "post-1-1"),
+			}),
+			want: 1,
 		},
 	}
 

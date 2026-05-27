@@ -20,17 +20,25 @@ func NewExecutor(ctx context.Context, fs *firestore.Client) *Executor {
 }
 
 func (exe *Executor) ExecuteQuery(ctx context.Context, op *QueryOperation) ([]*firestore.DocumentSnapshot, error) {
-	collection := exe.fs.Collection(op.Collection())
-	if collection == nil {
-		return nil, ErrInvalidCollection
+	var q firestore.Query
+	if op.IsCollectionGroup() {
+		q = exe.fs.CollectionGroup(op.Collection()).Query
+	} else {
+		collection := exe.fs.Collection(op.Collection())
+		if collection == nil {
+			return nil, ErrInvalidCollection
+		}
+		q = collection.Query
 	}
-	q := collection.Query
+
 	for _, filter := range op.filters {
 		fieldName := filter.FieldName()
 		value := filter.Value()
 		if fieldName == FieldDocumentID {
 			fieldName = firestore.DocumentID
-			value = toDocRefValue(collection, value)
+			if !op.IsCollectionGroup() {
+				value = toDocRefValue(exe.fs.Collection(op.Collection()), value)
+			}
 		}
 		q = q.Where(fieldName, string(filter.Operator()), value)
 	}
@@ -76,17 +84,25 @@ func (exe *Executor) ExecuteGet(ctx context.Context, op *GetOperation) (*firesto
 }
 
 func (exe *Executor) ExecuteCount(ctx context.Context, op *CountOperation) (int64, error) {
-	collection := exe.fs.Collection(op.Collection())
-	if collection == nil {
-		return 0, ErrInvalidCollection
+	var q firestore.Query
+	if op.IsCollectionGroup() {
+		q = exe.fs.CollectionGroup(op.Collection()).Query
+	} else {
+		collection := exe.fs.Collection(op.Collection())
+		if collection == nil {
+			return 0, ErrInvalidCollection
+		}
+		q = collection.Query
 	}
-	q := collection.Query
+
 	for _, filter := range op.filters {
 		fieldName := filter.FieldName()
 		value := filter.Value()
 		if fieldName == FieldDocumentID {
 			fieldName = firestore.DocumentID
-			value = toDocRefValue(collection, value)
+			if !op.IsCollectionGroup() {
+				value = toDocRefValue(exe.fs.Collection(op.Collection()), value)
+			}
 		}
 		q = q.Where(fieldName, string(filter.Operator()), value)
 	}

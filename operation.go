@@ -133,15 +133,20 @@ type OrderBy struct {
 
 type QueryOperation struct {
 	BaseOperation
-	collection string
-	selects    []string
-	filters    []Filter
-	orderBys   []OrderBy
-	limit      int
+	collection      string
+	collectionGroup bool
+	selects         []string
+	filters         []Filter
+	orderBys        []OrderBy
+	limit           int
 }
 
 func NewQueryOperation(collection string, selects []string, filters []Filter, orderBys []OrderBy, limit int) *QueryOperation {
 	return &QueryOperation{collection: collection, selects: selects, filters: filters, orderBys: orderBys, limit: limit}
+}
+
+func NewCollectionGroupQueryOperation(collectionGroup string, selects []string, filters []Filter, orderBys []OrderBy, limit int) *QueryOperation {
+	return &QueryOperation{collection: collectionGroup, collectionGroup: true, selects: selects, filters: filters, orderBys: orderBys, limit: limit}
 }
 
 func (op *QueryOperation) OperationType() OperationType {
@@ -150,6 +155,10 @@ func (op *QueryOperation) OperationType() OperationType {
 
 func (op *QueryOperation) Collection() string {
 	return op.collection
+}
+
+func (op *QueryOperation) IsCollectionGroup() bool {
+	return op.collectionGroup
 }
 
 type GetOperation struct {
@@ -181,12 +190,17 @@ func (op *GetOperation) Selects() []string {
 
 type CountOperation struct {
 	BaseOperation
-	collection string
-	filters    []Filter
+	collection      string
+	collectionGroup bool
+	filters         []Filter
 }
 
 func NewCountOperation(collection string, filters []Filter) *CountOperation {
 	return &CountOperation{collection: collection, filters: filters}
+}
+
+func NewCollectionGroupCountOperation(collectionGroup string, filters []Filter) *CountOperation {
+	return &CountOperation{collection: collectionGroup, collectionGroup: true, filters: filters}
 }
 
 func (op *CountOperation) OperationType() OperationType {
@@ -195,4 +209,8 @@ func (op *CountOperation) OperationType() OperationType {
 
 func (op *CountOperation) Collection() string {
 	return op.collection
+}
+
+func (op *CountOperation) IsCollectionGroup() bool {
+	return op.collectionGroup
 }

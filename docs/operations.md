@@ -8,6 +8,7 @@ Query documents in a collection. Supports `SELECT`, `WHERE`, `ORDER BY`, and `LI
 
 ```
 QUERY <collection_path> [SELECT ...] [WHERE ...] [ORDER BY ...] [LIMIT ...]
+QUERY COLLECTION_GROUP <collection_id> [SELECT ...] [WHERE ...] [ORDER BY ...] [LIMIT ...]
 ```
 
 ### Examples
@@ -21,6 +22,9 @@ QUERY users WHERE age = 20
 
 -- Subcollection query
 QUERY users/abc123/posts
+
+-- Collection group query
+QUERY COLLECTION_GROUP posts WHERE title = "post-1-1"
 ```
 
 ## GET
@@ -49,6 +53,7 @@ Count documents in a collection. Supports `WHERE` clause for filtering.
 
 ```
 COUNT <collection_path> [WHERE ...]
+COUNT COLLECTION_GROUP <collection_id> [WHERE ...]
 ```
 
 Returns a single integer.
@@ -61,6 +66,9 @@ COUNT users
 
 -- Count with filter
 COUNT users WHERE name = "takashi"
+
+-- Collection group count
+COUNT COLLECTION_GROUP posts WHERE title = "post-1-1"
 ```
 
 ## Collection Path
@@ -75,3 +83,11 @@ collection/docId/subcollection/docId/subcollection/...
 - **Document path** (odd number of segments): `users/abc123`, `users/abc123/posts/xyz789`
 
 Leading slashes are automatically stripped.
+
+## Collection Group
+
+`COLLECTION_GROUP` targets all collections with the same collection ID across the database hierarchy.
+
+- Use a single collection ID (for example, `posts`)
+- Slash-separated paths are not allowed (for example, `users/posts` is invalid)
+- Supported with `QUERY` and `COUNT`

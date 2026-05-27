@@ -54,11 +54,23 @@ func (p *Parser) Parse() (ParseResult, error) {
 func (p *Parser) parseQueryOperation() (*QueryOperation, error) {
 	op := &QueryOperation{}
 
-	if !p.expectPeek(IDENT) {
-		return nil, fmt.Errorf("invalid: expected collection but got %s", p.curToken.Literal)
+	if !p.peekTokenIs(IDENT) && !p.peekTokenIs(COLLECTION_GROUP) {
+		return nil, fmt.Errorf("invalid: expected collection but got %s", p.peekToken.Literal)
 	}
+	p.nextToken()
 
-	op.collection = normalizeFirestorePath(p.curToken.Literal)
+	if p.curTokenIs(COLLECTION_GROUP) {
+		op.collectionGroup = true
+		if !p.expectPeek(IDENT) {
+			return nil, fmt.Errorf("invalid: expected collection group name but got %s", p.peekToken.Literal)
+		}
+		op.collection = p.curToken.Literal
+		if err := validateCollectionGroupName(op.collection); err != nil {
+			return nil, err
+		}
+	} else {
+		op.collection = normalizeFirestorePath(p.curToken.Literal)
+	}
 
 	p.nextToken()
 
@@ -170,11 +182,23 @@ func (p *Parser) parseGetOperation() (*GetOperation, error) {
 func (p *Parser) parseCountOperation() (*CountOperation, error) {
 	op := &CountOperation{}
 
-	if !p.expectPeek(IDENT) {
-		return nil, fmt.Errorf("invalid: expected collection but got %s", p.curToken.Literal)
+	if !p.peekTokenIs(IDENT) && !p.peekTokenIs(COLLECTION_GROUP) {
+		return nil, fmt.Errorf("invalid: expected collection but got %s", p.peekToken.Literal)
 	}
+	p.nextToken()
 
-	op.collection = normalizeFirestorePath(p.curToken.Literal)
+	if p.curTokenIs(COLLECTION_GROUP) {
+		op.collectionGroup = true
+		if !p.expectPeek(IDENT) {
+			return nil, fmt.Errorf("invalid: expected collection group name but got %s", p.peekToken.Literal)
+		}
+		op.collection = p.curToken.Literal
+		if err := validateCollectionGroupName(op.collection); err != nil {
+			return nil, err
+		}
+	} else {
+		op.collection = normalizeFirestorePath(p.curToken.Literal)
+	}
 
 	p.nextToken()
 
@@ -444,4 +468,14 @@ func parseTime(timeStr string) (time.Time, error) {
 		}
 	}
 	return time.Time{}, fmt.Errorf("invalid timestamp format: %s", timeStr)
+}
+
+func validateCollectionGroupName(name string) error {
+	if name == "" {
+		return fmt.Errorf("invalid: collection group name is required")
+	}
+	if strings.Contains(name, "/") {
+		return fmt.Errorf("invalid: collection group name must not contain '/': %s", name)
+	}
+	return nil
 }

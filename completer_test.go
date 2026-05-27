@@ -44,6 +44,21 @@ func TestCompleter(t *testing.T) {
 			want:  []prompt.Suggest{newCollectionSuggestion("", "user")},
 		},
 		{
+			desc:  "middle of query with collection_group keyword",
+			input: `QUERY C`,
+			want:  []prompt.Suggest{collectionGroupSuggestion},
+		},
+		{
+			desc:  "query collection_group with name and where",
+			input: `QUERY COLLECTION_GROUP posts WH`,
+			want:  []prompt.Suggest{whereSuggestion},
+		},
+		{
+			desc:  "query collection_group with name",
+			input: `QUERY COLLECTION_GROUP posts`,
+			want:  querySuggestions,
+		},
+		{
 			desc:  "middle of query with sub collection",
 			input: `QUERY user/1/p`,
 			want:  []prompt.Suggest{newCollectionSuggestion("user/1", "posts")},
@@ -173,6 +188,21 @@ func TestCompleter(t *testing.T) {
 			desc:  "middle of count with collection",
 			input: `COUNT us`,
 			want:  []prompt.Suggest{newCollectionSuggestion("", "user")},
+		},
+		{
+			desc:  "middle of count with collection_group keyword",
+			input: `COUNT C`,
+			want:  []prompt.Suggest{collectionGroupSuggestion},
+		},
+		{
+			desc:  "count collection_group with name and where",
+			input: `COUNT COLLECTION_GROUP posts WH`,
+			want:  []prompt.Suggest{whereSuggestion},
+		},
+		{
+			desc:  "count collection_group with name",
+			input: `COUNT COLLECTION_GROUP posts`,
+			want:  []prompt.Suggest{whereSuggestion},
 		},
 		{
 			desc:  "middle of count with sub collection",

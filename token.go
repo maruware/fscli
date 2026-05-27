@@ -6,10 +6,11 @@ const (
 	EOF     = "EOF"
 	ILLEGAL = "ILLEGAL"
 
-	GET    = "GET"
-	QUERY  = "QUERY"
-	COUNT  = "COUNT"
-	SELECT = "SELECT"
+	GET              = "GET"
+	QUERY            = "QUERY"
+	COUNT            = "COUNT"
+	SELECT           = "SELECT"
+	COLLECTION_GROUP = "COLLECTION_GROUP"
 
 	WHERE              = "WHERE"
 	EQ                 = "="
@@ -55,18 +56,19 @@ type Token struct {
 	Literal string
 }
 
-var keywards = map[string]TokenType{
-	"GET":    GET,
-	"QUERY":  QUERY,
-	"COUNT":  COUNT,
-	"SELECT": SELECT,
-	"WHERE":  WHERE,
-	"AND":    AND,
-	"ORDER":  ORDER,
-	"BY":     BY,
-	"ASC":    ASC,
-	"DESC":   DESC,
-	"LIMIT":  LIMIT,
+var keywords = map[string]TokenType{
+	"GET":              GET,
+	"QUERY":            QUERY,
+	"COUNT":            COUNT,
+	"SELECT":           SELECT,
+	"COLLECTION_GROUP": COLLECTION_GROUP,
+	"WHERE":            WHERE,
+	"AND":              AND,
+	"ORDER":            ORDER,
+	"BY":               BY,
+	"ASC":              ASC,
+	"DESC":             DESC,
+	"LIMIT":            LIMIT,
 }
 
 var operators = map[string]TokenType{
@@ -88,7 +90,7 @@ var metacommands = map[string]TokenType{
 
 func LookupIdent(ident string) TokenType {
 	u := strings.ToUpper(ident)
-	if tok, ok := keywards[u]; ok {
+	if tok, ok := keywords[u]; ok {
 		return tok
 	}
 	if tok, ok := operators[u]; ok {

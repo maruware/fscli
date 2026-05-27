@@ -20,10 +20,11 @@ var rootSuggestions = []prompt.Suggest{
 }
 
 var (
-	selectSuggestion  = prompt.Suggest{Text: "SELECT", Description: "SELECT [field...]"}
-	whereSuggestion   = prompt.Suggest{Text: "WHERE", Description: "WHERE [field] [operator] [value]"}
-	orderBySuggestion = prompt.Suggest{Text: "ORDER BY", Description: "ORDER BY [field] [ASC/DESC]"}
-	limitSuggestion   = prompt.Suggest{Text: "LIMIT", Description: "LIMIT [count]"}
+	selectSuggestion          = prompt.Suggest{Text: "SELECT", Description: "SELECT [field...]"}
+	whereSuggestion           = prompt.Suggest{Text: "WHERE", Description: "WHERE [field] [operator] [value]"}
+	orderBySuggestion         = prompt.Suggest{Text: "ORDER BY", Description: "ORDER BY [field] [ASC/DESC]"}
+	limitSuggestion           = prompt.Suggest{Text: "LIMIT", Description: "LIMIT [count]"}
+	collectionGroupSuggestion = prompt.Suggest{Text: "COLLECTION_GROUP", Description: "COLLECTION_GROUP [collection]"}
 )
 
 var querySuggestions = []prompt.Suggest{
@@ -83,12 +84,24 @@ func (c *Completer) Parse() ([]prompt.Suggest, error) {
 }
 
 func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
-	if !c.expectPeek(IDENT) {
+	if !c.peekTokenIs(IDENT) && !c.peekTokenIs(COLLECTION_GROUP) {
 		return []prompt.Suggest{}, nil
+	}
+	c.nextToken()
+
+	collectionGroupMode := false
+	if c.curTokenIs(COLLECTION_GROUP) {
+		collectionGroupMode = true
+		if !c.expectPeek(IDENT) {
+			return []prompt.Suggest{}, nil
+		}
 	}
 
 	// collection := c.curToken.Literal
 	if c.peekTokenIs(EOF) {
+		if collectionGroupMode {
+			return querySuggestions, nil
+		}
 		collection := normalizeFirestorePath(c.curToken.Literal)
 		parts := strings.Split(collection, "/")
 		if len(parts)%2 == 0 {
@@ -109,6 +122,7 @@ func (c *Completer) parseQueryOperation() ([]prompt.Suggest, error) {
 		for _, col := range collections {
 			suggestions = append(suggestions, newCollectionSuggestion(baseDoc, col))
 		}
+		suggestions = append(suggestions, collectionGroupSuggestion)
 
 		return prompt.FilterHasPrefix(suggestions, c.curToken.Literal, false), nil
 	}
@@ -292,11 +306,23 @@ func (c *Completer) parseGetOperation() ([]prompt.Suggest, error) {
 }
 
 func (c *Completer) parseCountOperation() ([]prompt.Suggest, error) {
-	if !c.expectPeek(IDENT) {
+	if !c.peekTokenIs(IDENT) && !c.peekTokenIs(COLLECTION_GROUP) {
 		return []prompt.Suggest{}, nil
+	}
+	c.nextToken()
+
+	collectionGroupMode := false
+	if c.curTokenIs(COLLECTION_GROUP) {
+		collectionGroupMode = true
+		if !c.expectPeek(IDENT) {
+			return []prompt.Suggest{}, nil
+		}
 	}
 
 	if c.peekTokenIs(EOF) {
+		if collectionGroupMode {
+			return []prompt.Suggest{whereSuggestion}, nil
+		}
 		collection := normalizeFirestorePath(c.curToken.Literal)
 		parts := strings.Split(collection, "/")
 		if len(parts)%2 == 0 {
@@ -317,6 +343,7 @@ func (c *Completer) parseCountOperation() ([]prompt.Suggest, error) {
 		for _, col := range collections {
 			suggestions = append(suggestions, newCollectionSuggestion(baseDoc, col))
 		}
+		suggestions = append(suggestions, collectionGroupSuggestion)
 
 		return prompt.FilterHasPrefix(suggestions, c.curToken.Literal, false), nil
 	}

@@ -142,6 +142,13 @@ func TestParse(t *testing.T) {
 			want:  &QueryOperation{collection: "user"},
 		},
 		{
+			desc:  "query with collection group",
+			input: `QUERY COLLECTION_GROUP posts WHERE title = "post-1-1"`,
+			want: &QueryOperation{collection: "posts", collectionGroup: true, filters: []Filter{
+				NewStringFilter("title", OPERATOR_EQ, "post-1-1"),
+			}},
+		},
+		{
 			desc:  "query with select",
 			input: `QUERY user SELECT name, age`,
 			want:  &QueryOperation{collection: "user", selects: []string{"name", "age"}},
@@ -206,6 +213,13 @@ func TestParse(t *testing.T) {
 			input: `COUNT user WHERE age = 20`,
 			want: &CountOperation{collection: "user", filters: []Filter{
 				NewIntFilter("age", OPERATOR_EQ, 20),
+			}},
+		},
+		{
+			desc:  "count with collection group",
+			input: `COUNT COLLECTION_GROUP posts WHERE title = "post-1-1"`,
+			want: &CountOperation{collection: "posts", collectionGroup: true, filters: []Filter{
+				NewStringFilter("title", OPERATOR_EQ, "post-1-1"),
 			}},
 		},
 		{

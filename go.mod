@@ -3,7 +3,7 @@ module github.com/maruware/fscli
 go 1.25.0
 
 require (
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	golang.org/x/sync v0.21.0
 	google.golang.org/api v0.280.0
 )
@@ -56,10 +56,8 @@ require (
 require (
 	cloud.google.com/go/firestore v1.22.0
 	github.com/c-bata/go-prompt v0.2.6
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/olekukonko/tablewriter v1.1.4
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/shibukawa/configdir v0.0.0-20170330084843-e180dbdc8da0
 	github.com/urfave/cli/v2 v2.27.7
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d

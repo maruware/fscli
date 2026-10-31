@@ -3,7 +3,7 @@ module github.com/maruware/fscli
 go 1.26.0
 
 require (
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	golang.org/x/sync v0.24.0
 	google.golang.org/api v0.288.0
 )
@@ -40,6 +40,7 @@ require (
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/metric v1.45.0 // indirect
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
@@ -56,12 +57,9 @@ require (
 require (
 	cloud.google.com/go/firestore v1.29.0
 	github.com/c-bata/go-prompt v0.2.6
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/olekukonko/tablewriter v1.1.5
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/shibukawa/configdir v0.0.0-20170330084843-e180dbdc8da0
 	github.com/urfave/cli/v2 v2.27.7
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
